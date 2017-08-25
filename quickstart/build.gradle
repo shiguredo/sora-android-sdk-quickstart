@@ -35,22 +35,25 @@ dependencies {
     compile "com.android.support:appcompat-v7:$support_version"
     compile "com.android.support:design:$support_version"
 
-
-    // required by "rtc" part
-    compile project(':libwebrtc')
-
-    // Sora Android SDK
-    compile project(':sora-android-sdk')
-
     // Kotlin libs
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     ext.anko_version = '0.9.1'
     compile "org.jetbrains.anko:anko-sdk19:$anko_version"
     compile "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
 
-
     compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
+
+    // required by "rtc" part
+    compile project(':libwebrtc')
+
+    // required by "signaling" part
+    compile 'com.google.code.gson:gson:2.8.1'
+    compile 'com.squareup.okhttp3:okhttp:3.7.0'
+
+    // Sora Android SDK
+    compile project(':sora-android-sdk')
 }
 
 kapt {
