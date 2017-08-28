@@ -47,6 +47,9 @@ dependencies {
 
     // required by "rtc" part
     compile project(':libwebrtc')
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
 
     // required by "signaling" part
     compile 'com.google.code.gson:gson:2.8.1'
