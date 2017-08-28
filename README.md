@@ -1,10 +1,18 @@
 # Sora Android SDK クイックスタート
 
-Sora Android SDK は [WebRTC SFU Sora](https://sora.shiguredo.jp) の Android クライアントアプリケーションを開発するためのライブラリです。
+このリポジトリでは、 Sora Android SDK を利用するシンプルな Android アプリケーションを提供します。
 
-このリポジトリは Sora Android SDK を利用するシンプルな Android アプリケーションを
-提供します。
-使い方は [Sora Android SDK ドキュメント](https://sora.shiguredo.jp/android-sdk-doc/) を参照してください。
+このアプリケーションは、1対1 のビデオチャットのみを含み、各オプションもデフォルト固定、
+start, stop ボタンがあるだけの 1 画面のみのシンプルなものです。
+それは、素の `SoraMediaChannel` を使ったサンプルになっています。
+
+## Sora Android SDK
+
+Sora Android SDK は [WebRTC SFU Sora](https://sora.shiguredo.jp) の
+Android クライアントアプリケーションを開発するためのライブラリです。
+Sora Android SDK の使い方は
+[Sora Android SDK ドキュメント](https://sora.shiguredo.jp/android-sdk-doc/)
+を参照してください。
 
 ## システム条件
 
@@ -13,8 +21,9 @@ Sora Android SDK は [WebRTC SFU Sora](https://sora.shiguredo.jp) の Android �
 - WebRTC SFU Sora 17.08 以降
 - Sora Android SDK 1.0.0 以降
 
-## サンプル
+## 参考リンク
 
+- [Sora Android SDK ドキュメント](https://sora.shiguredo.jp/android-sdk-doc/)
 - [サンプル集](https://github.com/shiguredo/sora-android-sdk-samples)
 
 ## サポートについて
