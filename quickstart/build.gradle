@@ -25,6 +25,8 @@ android {
     }
 }
 
+
+
 dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -46,7 +48,7 @@ dependencies {
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
     // required by "rtc" part
-    compile project(':libwebrtc')
+    // compile project(':libwebrtc')
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxjava:2.1.0'
     compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
@@ -56,6 +58,10 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.7.0'
 
     // Sora Android SDK
+
+    // compile 'jp.shiguredo.sora.sdk:sora-android-sdk:a7d4d93b37@aar'
+    // compile 'com.github.shiguredo:sora-android-sdk:a7d4d93b37@aar'
+    // compile 'com.github.shiguredo:sora-android-sdk:feature~simple-dep-SNAPSHOT@aar'
     compile project(':sora-android-sdk')
 }
 
