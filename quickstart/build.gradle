@@ -59,10 +59,7 @@ dependencies {
 
     // Sora Android SDK
 
-    // compile 'jp.shiguredo.sora.sdk:sora-android-sdk:a7d4d93b37@aar'
-    // compile 'com.github.shiguredo:sora-android-sdk:a7d4d93b37@aar'
-    // compile 'com.github.shiguredo:sora-android-sdk:feature~simple-dep-SNAPSHOT@aar'
-    compile project(':sora-android-sdk')
+    compile 'com.github.shiguredo:sora-android-sdk:689038767f:release@aar'
 }
 
 kapt {

@@ -1,1 +1,1 @@
-include ':quickstart', ':sora-android-sdk'
+include ':quickstart'
