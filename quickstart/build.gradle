@@ -25,6 +25,7 @@ android {
     }
 }
 
+
 dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -35,9 +36,7 @@ dependencies {
     compile "com.android.support:appcompat-v7:$support_version"
     compile "com.android.support:design:$support_version"
 
-    // Kotlin libs
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    // Anko libs
     ext.anko_version = '0.9.1'
     compile "org.jetbrains.anko:anko-sdk19:$anko_version"
     compile "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
@@ -45,18 +44,10 @@ dependencies {
     compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
-    // required by "rtc" part
-    compile project(':libwebrtc')
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.0'
-    compile 'io.reactivex.rxjava2:rxkotlin:2.1.0'
-
-    // required by "signaling" part
-    compile 'com.google.code.gson:gson:2.8.1'
-    compile 'com.squareup.okhttp3:okhttp:3.7.0'
-
     // Sora Android SDK
-    compile project(':sora-android-sdk')
+    compile("com.github.shiguredo:sora-android-sdk:$sora_android_sdk_version:release@aar") {
+        transitive = true
+    }
 }
 
 kapt {
