@@ -45,7 +45,7 @@ dependencies {
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
     // Sora Android SDK
-    compile('com.github.shiguredo:sora-android-sdk:689038767f:release@aar') {
+    compile("com.github.shiguredo:sora-android-sdk:$sora_android_sdk_version:release@aar") {
         transitive = true
     }
 }
