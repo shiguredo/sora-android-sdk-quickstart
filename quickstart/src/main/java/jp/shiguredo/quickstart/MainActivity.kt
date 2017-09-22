@@ -13,6 +13,7 @@ import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
+import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.jetbrains.anko.*
 import org.webrtc.*
 import permissions.dispatcher.*
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        SoraLogger.enabled = true
 
         egl = EglBase.create()
 
