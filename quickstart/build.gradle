@@ -14,8 +14,11 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        // gradle.properties に endpoint 設定があればトップレベルの設定を上書きする
+        def endpoint = findProperty("sora.signaling_endpoint") ?: signaling_endpoint
+        buildConfigField("String", "SIGNALING_ENDPOINT", "\"${endpoint}\"")
 
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
