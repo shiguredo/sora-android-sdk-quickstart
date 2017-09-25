@@ -1,4 +1,4 @@
-package jp.shiguredo.quickstart
+package jp.shiguredo.sora.quickstart
 
 import android.view.ViewManager
 import org.jetbrains.anko.custom.ankoView
