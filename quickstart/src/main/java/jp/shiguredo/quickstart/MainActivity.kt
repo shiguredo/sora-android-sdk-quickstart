@@ -106,8 +106,8 @@ class MainActivity : AppCompatActivity() {
 
         mediaChannel = SoraMediaChannel(
                 context           = this,
-                signalingEndpoint = Conf.SIGNALING_ENDPOINT,
-                channelId         = Conf.CHANNEL_ID,
+                signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
+                channelId         = BuildConfig.CHANNEL_ID,
                 mediaOption       = option,
                 listener          = channelListener)
         mediaChannel!!.connect()
