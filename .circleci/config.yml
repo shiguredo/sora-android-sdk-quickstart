@@ -19,7 +19,7 @@ jobs:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
       - run:
           name: Run build
-          command: ./gradlew assembleRelease assembleDebug
+          command: ./gradlew assembleRelease assembleNotFound
       - store_artifacts:
           path: quickstart/build/outputs
           destination: reports
