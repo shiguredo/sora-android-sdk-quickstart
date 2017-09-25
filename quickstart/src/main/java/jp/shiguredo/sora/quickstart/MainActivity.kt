@@ -1,4 +1,4 @@
-package jp.shiguredo.quickstart
+package jp.shiguredo.sora.quickstart
 
 import android.Manifest
 import android.graphics.Color
