@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/code
+    working_directory: ~/sora-android-sdk-quickstart
     docker:
       - image: circleci/android:api-25-alpha
     environment:
@@ -18,10 +18,11 @@ jobs:
             - ~/.gradle
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
       - run:
-          name: Run build
-          command: ./gradlew assembleRelease assembleDebug
+          name: Run lint & build
+          command: ./gradlew lint assembleRelease assembleDebug
       - store_artifacts:
           path: quickstart/build/outputs
+          destination: outputs
+      - store_artifacts:
+          path: quickstart/build/reports
           destination: reports
-      # - store_test_results:
-      #     path: quickstart/build/test-results

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SoraQuickStart</string>
+    <string name="app_name">Sora SDK QuickStart</string>
     <string name="permission_button_positive">許可する</string>
     <string name="permission_button_negative">許可しない</string>
     <string name="permission_rationale_camera">ビデオチャットを利用するには、カメラの使用許可が必要です</string>
