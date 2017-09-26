@@ -16,6 +16,7 @@
 
 - SDK のバージョンを上げた
 - Kotlin を 1.1.50 に上げた
+- CircleCI でのビルドを設定した
 
 ### CHANGE
 
