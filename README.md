@@ -1,5 +1,7 @@
 # Sora Android SDK クイックスタート
 
+[![CircleCI](https://circleci.com/gh/shiguredo/sora-android-sdk-quickstart.svg?style=svg)](https://circleci.com/gh/shiguredo/sora-android-sdk-quickstart)
+
 このリポジトリでは、 Sora Android SDK を利用するシンプルな Android アプリケーションを提供します。
 
 このアプリケーションは、1対1 のビデオチャットのみを含み、各オプションもデフォルト固定、
