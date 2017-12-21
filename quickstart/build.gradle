@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "26.0.1"
 
     defaultConfig {
         applicationId "jp.shiguredo.sora.quickstart"
@@ -38,9 +38,11 @@ dependencies {
     })
     testCompile 'junit:junit:4.12'
 
+    // com.github.hotchemi:permissionsdispatcher:2.4.0 が 25.3.1 に依存している。
+    // TODO: 更新
     ext.support_version = '25.3.1'
-    compile "com.android.support:appcompat-v7:$support_version"
-    compile "com.android.support:design:$support_version"
+    compile "com.android.support:appcompat-v7:${support_version}"
+    compile "com.android.support:design:${support_version}"
 
     // Anko libs
     ext.anko_version = '0.9.1'
@@ -51,7 +53,7 @@ dependencies {
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
     // Sora Android SDK
-    compile("com.github.shiguredo:sora-android-sdk:$sora_android_sdk_version:release@aar") {
+    compile("com.github.shiguredo:sora-android-sdk:$sora_android_sdk_version@aar") {
         transitive = true
     }
 }
