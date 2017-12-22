@@ -139,8 +139,6 @@ class MainActivity : AppCompatActivity() {
 
     // 以下 PermissionDispatcher用
 
-    // Android Studio では lint エラーがでる, gradlew lint ではでない
-    @SuppressLint("NeedOnRequestPermissionsResult")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         Log.d(TAG, "onRequestPermissionResult")
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

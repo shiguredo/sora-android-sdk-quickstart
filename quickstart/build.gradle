@@ -47,7 +47,9 @@ dependencies {
     implementation "org.jetbrains.anko:anko-sdk19:${anko_version}"
     implementation "org.jetbrains.anko:anko-appcompat-v7:${anko_version}"
 
-    implementation 'com.github.hotchemi:permissionsdispatcher:3.1.0'
+    implementation ('com.github.hotchemi:permissionsdispatcher:3.1.0') {
+        exclude module: "support-v13"
+    }
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:3.1.0'
 
     // Sora Android SDK
