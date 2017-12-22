@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "26.0.1"
 
     defaultConfig {
         applicationId "jp.shiguredo.sora.quickstart"
@@ -33,29 +33,27 @@ android {
 
 
 dependencies {
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 
+    // com.github.hotchemi:permissionsdispatcher:2.4.0 が 25.3.1 に依存している。
+    // TODO: 更新
     ext.support_version = '25.3.1'
-    compile "com.android.support:appcompat-v7:$support_version"
-    compile "com.android.support:design:$support_version"
+    implementation "com.android.support:appcompat-v7:${support_version}"
+    implementation "com.android.support:design:${support_version}"
 
     // Anko libs
     ext.anko_version = '0.9.1'
-    compile "org.jetbrains.anko:anko-sdk19:$anko_version"
-    compile "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
+    implementation "org.jetbrains.anko:anko-sdk19:${anko_version}"
+    implementation "org.jetbrains.anko:anko-appcompat-v7:${anko_version}"
 
-    compile 'com.github.hotchemi:permissionsdispatcher:2.4.0'
+    implementation 'com.github.hotchemi:permissionsdispatcher:2.4.0'
     kapt 'com.github.hotchemi:permissionsdispatcher-processor:2.4.0'
 
     // Sora Android SDK
-    compile("com.github.shiguredo:sora-android-sdk:$sora_android_sdk_version:release@aar") {
+    implementation("com.github.shiguredo:sora-android-sdk:${sora_android_sdk_version}@aar") {
         transitive = true
     }
-}
-
-kapt {
-    generateStubs = true
 }
