@@ -1,6 +1,7 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -129,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
     // UI events
     fun onStartButtonClicked() {
-        MainActivityPermissionsDispatcher.startWithCheck(this)
+        startWithPermissionCheck()
     }
 
     fun onStopButtonClicked() {
@@ -137,10 +138,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 以下 PermissionDispatcher用
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         Log.d(TAG, "onRequestPermissionResult")
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults)
+        onRequestPermissionsResult(requestCode, grantResults)
     }
 
     @OnShowRationale(Manifest.permission.CAMERA)
