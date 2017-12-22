@@ -1,7 +1,6 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.Snackbar
