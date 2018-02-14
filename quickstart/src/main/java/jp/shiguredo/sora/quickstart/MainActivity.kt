@@ -12,6 +12,7 @@ import android.widget.Button
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.jetbrains.anko.*
@@ -86,6 +87,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
+            Log.d(TAG, "onPushMessage" + push)
+        }
+
     }
 
     @NeedsPermission(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
