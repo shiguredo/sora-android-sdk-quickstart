@@ -12,6 +12,11 @@
 
 ## develop
 
+### UPDATE
+
+- SDK のバージョンを 1.5.0 に上げた
+- Sora プッシュ API の listener を実装した
+
 ## 1.4.2
 
 ### UPDATE

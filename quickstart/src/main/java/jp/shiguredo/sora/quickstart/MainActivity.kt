@@ -12,6 +12,7 @@ import android.widget.Button
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.jetbrains.anko.*
@@ -83,6 +84,16 @@ class MainActivity : AppCompatActivity() {
                     track.setEnabled(true)
                     track.addRenderer(VideoRenderer(ui!!.localSurfaceRenderer!!))
                     capturer?.startCapture(400, 400, 30)
+                }
+            }
+        }
+
+        override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
+            Log.d(TAG, """onPushMessage: push=${push}""")
+            val data = push.data
+            if(data is Map<*, *>) {
+                for((key, value) in data) {
+                    Log.d(TAG, """pushed data: ${key}=${value}""")
                 }
             }
         }
