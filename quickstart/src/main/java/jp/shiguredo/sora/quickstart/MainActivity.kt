@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
             Log.d(TAG, """onPushMessage: push=${push}""")
-            val data = push["data"]
+            val data = push.data
             if(data is Map<*, *>) {
                 for((key, value) in data) {
                     Log.d(TAG, """pushed data: ${key}=${value}""")
