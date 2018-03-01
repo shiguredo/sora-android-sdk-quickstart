@@ -23,6 +23,12 @@ android {
         buildConfigField("String", "SIGNALING_ENDPOINT", "\"${endpoint}\"")
         buildConfigField("String", "CHANNEL_ID",         "\"${channel_id}\"")
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     buildTypes {
         release {
             minifyEnabled false
