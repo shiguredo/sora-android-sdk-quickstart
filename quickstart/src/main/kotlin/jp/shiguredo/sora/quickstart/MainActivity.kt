@@ -148,7 +148,12 @@ class MainActivity : AppCompatActivity() {
         close()
     }
 
-    // 以下 PermissionDispatcher用
+    // -- PermissionDispatcher --
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        onRequestPermissionsResult(requestCode, grantResults)
+    }
 
     @OnShowRationale(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun showRationaleForCameraAndAudio(request: PermissionRequest) {
