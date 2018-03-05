@@ -99,8 +99,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @NeedsPermission(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+    @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun start() {
+        Log.d(TAG, "start")
 
         capturer = CameraCapturerFactory.create(this)
 
@@ -149,46 +150,29 @@ class MainActivity : AppCompatActivity() {
 
     // 以下 PermissionDispatcher用
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        Log.d(TAG, "onRequestPermissionResult")
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        onRequestPermissionsResult(requestCode, grantResults)
+    @OnShowRationale(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
+    fun showRationaleForCameraAndAudio(request: PermissionRequest) {
+        Log.d(TAG, "showRationaleForCameraAndAudio")
+        showRationaleDialog(
+                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request)
     }
 
-    @OnShowRationale(Manifest.permission.CAMERA)
-    fun showRationaleForCamera(request: PermissionRequest) {
-        Log.d(TAG, "showRationalForCamera")
-        showRationaleDialog(getString(R.string.permission_rationale_camera), request)
-    }
-
-    @OnShowRationale(Manifest.permission.RECORD_AUDIO)
-    fun showRationaleForAudio(request: PermissionRequest) {
-        Log.d(TAG, "showRationalForAudio")
-        showRationaleDialog(getString(R.string.permission_rationale_record_audio), request)
-    }
-
-    @OnPermissionDenied(Manifest.permission.CAMERA)
-    fun onCameraDenied() {
+    @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
+    fun onCameraAndAudioDenied() {
+        Log.d(TAG, "onCameraAndAudioDenied")
         Snackbar.make(this.contentView!!,
-                getString(R.string.permission_denied_camera),
+                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
                 Snackbar.LENGTH_LONG)
                 .setAction("OK") { }
                 .show()
     }
 
-    @OnPermissionDenied(Manifest.permission.RECORD_AUDIO)
-    fun onAudioDenied() {
-        Snackbar.make(this.contentView!!,
-                getString(R.string.permission_denied_record_audio),
-                Snackbar.LENGTH_LONG)
-                .setAction("OK") {  }
-                .show()
-    }
-
     private fun showRationaleDialog(message: String, request: PermissionRequest) {
         AlertDialog.Builder(this)
-                .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
-                .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
+                .setPositiveButton(getString(R.string.permission_button_positive)) {
+                    _, _ -> request.proceed() }
+                .setNegativeButton(getString(R.string.permission_button_negative)) {
+                    _, _ -> request.cancel() }
                 .setCancelable(false)
                 .setMessage(message)
                 .show()
