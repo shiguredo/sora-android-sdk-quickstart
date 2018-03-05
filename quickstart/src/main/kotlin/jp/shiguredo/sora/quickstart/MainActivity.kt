@@ -40,8 +40,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "onPause")
-        super.onPause()
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
         close()
         dispose()
     }
@@ -89,11 +89,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
-            Log.d(TAG, """onPushMessage: push=${push}""")
+            Log.d(TAG, "onPushMessage: push=${push}")
             val data = push.data
             if(data is Map<*, *>) {
                 for((key, value) in data) {
-                    Log.d(TAG, """pushed data: ${key}=${value}""")
+                    Log.d(TAG, "pushed data: ${key}=${value}")
                 }
             }
         }
@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
         capturer?.stopCapture()
     }
 
-    fun dispose() {
+    private fun dispose() {
         capturer?.stopCapture()
         capturer = null
         ui?.releaseRenderers()
@@ -275,14 +275,14 @@ class MainActivityUI : AnkoComponent<MainActivity> {
         }
     }
 
-    fun disableStartButton() {
+    private fun disableStartButton() {
         stopButton?.enabled = true
         stopButton?.backgroundColor = Color.parseColor("#F06292")
         startButton?.enabled = false
         startButton?.backgroundColor = Color.parseColor("#CCCCCC")
     }
 
-    fun disableStopButton() {
+    private fun disableStopButton() {
         stopButton?.enabled = false
         stopButton?.backgroundColor = Color.parseColor("#CCCCCC")
         startButton?.enabled = true
