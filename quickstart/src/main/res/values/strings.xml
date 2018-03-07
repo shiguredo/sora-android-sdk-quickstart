@@ -2,8 +2,4 @@
     <string name="app_name">Sora SDK QuickStart</string>
     <string name="permission_button_positive">許可する</string>
     <string name="permission_button_negative">許可しない</string>
-    <string name="permission_rationale_camera">ビデオチャットを利用するには、カメラの使用許可が必要です</string>
-    <string name="permission_rationale_record_audio">ビデオチャットやボイスチャットを利用するには、マイクの使用許可が必要です</string>
-    <string name="permission_denied_camera">チャットでカメラを使うには「カメラ」の許可が必要です</string>
-    <string name="permission_denied_record_audio">チャットでマイクを使うには「音声録音」の許可が必要です</string>
 </resources>

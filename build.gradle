@@ -1,6 +1,6 @@
 buildscript {
-    ext.kotlin_version = '1.2.10'
-    ext.sora_android_sdk_version = '1.5.0'
+    ext.kotlin_version = '1.2.30'
+    ext.sora_android_sdk_version = '1.5.2'
 
     repositories {
         jcenter()
@@ -9,7 +9,6 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
-
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
     }
 

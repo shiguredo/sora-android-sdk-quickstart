@@ -40,8 +40,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "onPause")
-        super.onPause()
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
         close()
         dispose()
     }
@@ -89,18 +89,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
-            Log.d(TAG, """onPushMessage: push=${push}""")
+            Log.d(TAG, "onPushMessage: push=${push}")
             val data = push.data
             if(data is Map<*, *>) {
                 for((key, value) in data) {
-                    Log.d(TAG, """pushed data: ${key}=${value}""")
+                    Log.d(TAG, "pushed data: ${key}=${value}")
                 }
             }
         }
     }
 
-    @NeedsPermission(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+    @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun start() {
+        Log.d(TAG, "start")
 
         capturer = CameraCapturerFactory.create(this)
 
@@ -130,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         capturer?.stopCapture()
     }
 
-    fun dispose() {
+    private fun dispose() {
         capturer?.stopCapture()
         capturer = null
         ui?.releaseRenderers()
@@ -147,48 +148,36 @@ class MainActivity : AppCompatActivity() {
         close()
     }
 
-    // 以下 PermissionDispatcher用
+    // -- PermissionDispatcher --
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        Log.d(TAG, "onRequestPermissionResult")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         onRequestPermissionsResult(requestCode, grantResults)
     }
 
-    @OnShowRationale(Manifest.permission.CAMERA)
-    fun showRationaleForCamera(request: PermissionRequest) {
-        Log.d(TAG, "showRationalForCamera")
-        showRationaleDialog(getString(R.string.permission_rationale_camera), request)
+    @OnShowRationale(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
+    fun showRationaleForCameraAndAudio(request: PermissionRequest) {
+        Log.d(TAG, "showRationaleForCameraAndAudio")
+        showRationaleDialog(
+                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request)
     }
 
-    @OnShowRationale(Manifest.permission.RECORD_AUDIO)
-    fun showRationaleForAudio(request: PermissionRequest) {
-        Log.d(TAG, "showRationalForAudio")
-        showRationaleDialog(getString(R.string.permission_rationale_record_audio), request)
-    }
-
-    @OnPermissionDenied(Manifest.permission.CAMERA)
-    fun onCameraDenied() {
+    @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
+    fun onCameraAndAudioDenied() {
+        Log.d(TAG, "onCameraAndAudioDenied")
         Snackbar.make(this.contentView!!,
-                getString(R.string.permission_denied_camera),
+                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
                 Snackbar.LENGTH_LONG)
                 .setAction("OK") { }
                 .show()
     }
 
-    @OnPermissionDenied(Manifest.permission.RECORD_AUDIO)
-    fun onAudioDenied() {
-        Snackbar.make(this.contentView!!,
-                getString(R.string.permission_denied_record_audio),
-                Snackbar.LENGTH_LONG)
-                .setAction("OK") {  }
-                .show()
-    }
-
     private fun showRationaleDialog(message: String, request: PermissionRequest) {
         AlertDialog.Builder(this)
-                .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
-                .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
+                .setPositiveButton(getString(R.string.permission_button_positive)) {
+                    _, _ -> request.proceed() }
+                .setNegativeButton(getString(R.string.permission_button_negative)) {
+                    _, _ -> request.cancel() }
                 .setCancelable(false)
                 .setMessage(message)
                 .show()
@@ -275,14 +264,14 @@ class MainActivityUI : AnkoComponent<MainActivity> {
         }
     }
 
-    fun disableStartButton() {
+    private fun disableStartButton() {
         stopButton?.enabled = true
         stopButton?.backgroundColor = Color.parseColor("#F06292")
         startButton?.enabled = false
         startButton?.backgroundColor = Color.parseColor("#CCCCCC")
     }
 
-    fun disableStopButton() {
+    private fun disableStopButton() {
         stopButton?.enabled = false
         stopButton?.backgroundColor = Color.parseColor("#CCCCCC")
         startButton?.enabled = true
