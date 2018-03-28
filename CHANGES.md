@@ -12,6 +12,11 @@
 
 ## develop
 
+### UPDATE
+
+- SDK のバージョンを 1.5.3 に上げた
+- Kotlin 1.2.31 に上げた
+
 ## 1.5.1
 
 ### UPDATE
