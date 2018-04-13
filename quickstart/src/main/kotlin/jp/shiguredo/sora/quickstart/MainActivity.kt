@@ -1,6 +1,7 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -150,6 +151,9 @@ class MainActivity : AppCompatActivity() {
 
     // -- PermissionDispatcher --
 
+    // TODO: AndroidStudio 3.1.1 でエラーになるので suppress
+    // - Generated onRequestPermissionsResult method not called
+    @SuppressLint("NeedOnRequestPermissionsResult")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         onRequestPermissionsResult(requestCode, grantResults)
