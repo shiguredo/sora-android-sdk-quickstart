@@ -151,9 +151,6 @@ class MainActivity : AppCompatActivity() {
 
     // -- PermissionDispatcher --
 
-    // TODO: AndroidStudio 3.1.1 でエラーになるので suppress
-    // - Generated onRequestPermissionsResult method not called
-    @SuppressLint("NeedOnRequestPermissionsResult")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         onRequestPermissionsResult(requestCode, grantResults)
