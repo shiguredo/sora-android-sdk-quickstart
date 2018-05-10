@@ -16,7 +16,7 @@ import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.jetbrains.anko.*
-import org.jetbrains.anko.sdk19.listeners.onClick
+import org.jetbrains.anko.sdk15.listeners.onClick
 import org.webrtc.*
 import permissions.dispatcher.*
 
