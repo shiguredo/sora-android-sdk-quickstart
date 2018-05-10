@@ -1,7 +1,6 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -17,6 +16,7 @@ import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.jetbrains.anko.*
+import org.jetbrains.anko.sdk19.listeners.onClick
 import org.webrtc.*
 import permissions.dispatcher.*
 
@@ -208,14 +208,6 @@ class MainActivityUI : AnkoComponent<MainActivity> {
             lparams(width = matchParent, height = matchParent)
 
             startButton = button("START") {
-
-                lparams {
-
-                    width = matchParent
-                    height = wrapContent
-                    margin = dip(10)
-                }
-
                 backgroundColor = Color.parseColor("#F06292")
                 textColor = Color.WHITE
 
@@ -223,17 +215,16 @@ class MainActivityUI : AnkoComponent<MainActivity> {
                     ui.owner.onStartButtonClicked()
                     disableStartButton()
                 }
+            }.lparams {
+
+                width = matchParent
+                height = wrapContent
+                margin = dip(10)
             }
 
+
+
             stopButton = button("STOP") {
-
-                lparams {
-
-                    width = matchParent
-                    height = wrapContent
-                    margin = dip(10)
-                }
-
                 backgroundColor = Color.parseColor("#F06292")
                 textColor = Color.WHITE
 
@@ -241,7 +232,13 @@ class MainActivityUI : AnkoComponent<MainActivity> {
                     ui.owner.onStopButtonClicked()
                     disableStopButton()
                 }
+            }.lparams {
+                width = matchParent
+                height = wrapContent
+                margin = dip(10)
             }
+
+
 
             localRenderer = surfaceViewRenderer {
 
@@ -266,16 +263,16 @@ class MainActivityUI : AnkoComponent<MainActivity> {
     }
 
     private fun disableStartButton() {
-        stopButton?.enabled = true
+        stopButton?.isEnabled = true
         stopButton?.backgroundColor = Color.parseColor("#F06292")
-        startButton?.enabled = false
+        startButton?.isEnabled = false
         startButton?.backgroundColor = Color.parseColor("#CCCCCC")
     }
 
     private fun disableStopButton() {
-        stopButton?.enabled = false
+        stopButton?.isEnabled = false
         stopButton?.backgroundColor = Color.parseColor("#CCCCCC")
-        startButton?.enabled = true
+        startButton?.isEnabled = true
         startButton?.backgroundColor = Color.parseColor("#F06292")
     }
 

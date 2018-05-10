@@ -53,9 +53,10 @@ dependencies {
     implementation "com.android.support:design:${support_version}"
 
     // Anko libs
-    ext.anko_version = '0.9.1'
+    ext.anko_version = '0.10.5'
     implementation "org.jetbrains.anko:anko-sdk19:${anko_version}"
     implementation "org.jetbrains.anko:anko-appcompat-v7:${anko_version}"
+    implementation "org.jetbrains.anko:anko-sdk19-listeners:${anko_version}"
 
     ext.permissionsdispatcher_version = '3.2.0'
     implementation ("com.github.hotchemi:permissionsdispatcher:${permissionsdispatcher_version}") {
