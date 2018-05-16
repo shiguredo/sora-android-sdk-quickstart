@@ -2,6 +2,7 @@ package jp.shiguredo.sora.quickstart
 
 import android.Manifest
 import android.graphics.Color
+import android.media.AudioManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
@@ -38,6 +39,11 @@ class MainActivity : AppCompatActivity() {
         ui = MainActivityUI()
         ui?.setContentView(this)
         ui?.init(egl!!.eglBaseContext)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        this.volumeControlStream = AudioManager.STREAM_MUSIC
     }
 
     override fun onDestroy() {
