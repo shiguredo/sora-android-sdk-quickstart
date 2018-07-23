@@ -17,10 +17,10 @@
 - Android Studio 3.1.2 に対応した
 - PermissionsDispatcher を 3.2.0 に上げた
   - lint バグフィックスにより不要な SuppressLint アノテーションを削除した
-- Kotlin を 1.2.41 に上げた
+- Kotlin を 1.2.51 に上げた
 - Anko を 0.10.5 に上げた
 - 音量をボリュームキーから制御できるようにした
-
+- PermissionsDispatcher を 3.3.1 に上げた
 
 ## 1.5.3
 
