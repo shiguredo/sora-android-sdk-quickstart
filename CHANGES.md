@@ -12,6 +12,10 @@
 
 ## develop
 
+## 1.7.0
+
+### UPDATE
+
 - SDK のバージョンを 1.7.0 に上げた
 - Android Studio 3.1.4 に対応した
 
