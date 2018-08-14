@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addRenderer(VideoRenderer(ui!!.remoteSurfaceRenderer!!))
+                    track.addSink(ui!!.remoteSurfaceRenderer!!)
                 }
             }
         }
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addRenderer(VideoRenderer(ui!!.localSurfaceRenderer!!))
+                    track.addSink(ui!!.localSurfaceRenderer!!)
                     capturer?.startCapture(400, 400, 30)
                 }
             }
