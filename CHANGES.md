@@ -15,7 +15,7 @@
 ### UPDATE
 
 - Kotlin を 1.2.60 に上げた
-
+- Android Studio 3.2.0 に対応した
 
 ## 1.7.0
 
