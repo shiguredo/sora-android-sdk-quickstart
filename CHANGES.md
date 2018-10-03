@@ -14,7 +14,7 @@
 
 ### UPDATE
 
-- Kotlin を 1.2.60 に上げた
+- Kotlin を 1.2.71 に上げた
 - Android Studio 3.2.0 に対応した
 - targetSdkVersion を 27 に上げる
   - cf. Google Developers Japan: 今後の Google Play でのアプリのセキュリティおよびパフォーマンスの改善について
