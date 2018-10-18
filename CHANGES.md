@@ -19,6 +19,7 @@
 - targetSdkVersion を 27 に上げる
   - cf. Google Developers Japan: 今後の Google Play でのアプリのセキュリティおよびパフォーマンスの改善について
     https://developers-jp.googleblog.com/2017/12/improving-app-security-and-performance.html
+- Anko を 0.10.7 に上げた
 
 ## 1.7.0
 
