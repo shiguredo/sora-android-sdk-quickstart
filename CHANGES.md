@@ -12,6 +12,8 @@
 
 ## develop
 
+## 1.7.1
+
 ### UPDATE
 
 - Kotlin を 1.2.71 に上げた
