@@ -16,7 +16,9 @@
 
 - Kotlin を 1.3.20 に上げた
 - Anko を依存から外した
-- Android support library を 27.1.1 に上げた
+- Android support library から androidx 1.0.0 に移行する
+- PermissionsDispatcher を 4.3.0 に上げた
+- compileSdkVersion, targetSdkVersion を 28 に上げた
 
 ## 1.7.1
 
