@@ -15,7 +15,7 @@
 ### UPDATE
 
 - Kotlin を 1.3.20 に上げた
-- Anko を 0.10.8 に上げた
+- Anko を依存から外した
 - Android support library を 27.1.1 に上げた
 
 ## 1.7.1
