@@ -12,6 +12,11 @@
 
 ## develop
 
+### UPDATE
+
+- Kotlin を 1.3.20 に上げた
+- Anko を 0.10.8 に上げた
+
 ## 1.7.1
 
 ### UPDATE
