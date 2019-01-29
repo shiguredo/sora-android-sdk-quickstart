@@ -3,20 +3,20 @@ jobs:
   build:
     working_directory: ~/sora-android-sdk-quickstart
     docker:
-      - image: circleci/android:api-27-alpha
+      - image: circleci/android:api-28-alpha
     environment:
       JVM_OPTS: -Xmx1600m
     steps:
       - checkout
       - restore_cache:
-          key: jars-28-alpha-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
+          key: jars-alpha-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
       - run:
           name: Download Dependencies
           command: ./gradlew androidDependencies
       - save_cache:
           paths:
             - ~/.gradle
-          key: jars-28-alpha-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
+          key: jars-alpha-{{ checksum "build.gradle" }}-{{ checksum  "quickstart/build.gradle" }}
       - run:
           name: Run lint & build
           command: ./gradlew lint assembleRelease assembleDebug
