@@ -4,41 +4,49 @@ import android.Manifest
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
-import android.view.View
-import android.widget.Button
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import org.jetbrains.anko.*
-import org.jetbrains.anko.sdk15.listeners.onClick
 import org.webrtc.*
 import permissions.dispatcher.*
+import kotlinx.android.synthetic.main.activity_main.*
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
 
-    private val TAG = MainActivity::class.simpleName
+    companion object {
+        private val TAG = MainActivity::class.simpleName
+    }
 
     private var egl: EglBase? = null
-    private var ui: MainActivityUI? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         SoraLogger.enabled = true
 
-        egl = EglBase.create()
+        setContentView(R.layout.activity_main)
+        startButton.setOnClickListener {
+            disableStartButton()
+            startWithPermissionCheck()
+        }
+        stopButton.setOnClickListener {
+            close()
+            disableStopButton()
+        }
 
-        ui = MainActivityUI()
-        ui?.setContentView(this)
-        ui?.init(egl!!.eglBaseContext)
+        egl = EglBase.create()
+        val eglContext = egl!!.eglBaseContext
+        localRenderer?.init(eglContext, null)
+        remoteRenderer?.init(eglContext, null)
+        disableStopButton()
     }
 
     override fun onResume() {
@@ -78,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addSink(ui!!.remoteSurfaceRenderer!!)
+                    track.addSink(this@MainActivity.remoteRenderer)
                 }
             }
         }
@@ -89,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addSink(ui!!.localSurfaceRenderer!!)
+                    track.addSink(this@MainActivity.localRenderer)
                     capturer?.startCapture(400, 400, 30)
                 }
             }
@@ -99,8 +107,8 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onPushMessage: push=${push}")
             val data = push.data
             if(data is Map<*, *>) {
-                for((key, value) in data) {
-                    Log.d(TAG, "pushed data: ${key}=${value}")
+                data.forEach { (key, value) ->
+                    Log.d(TAG, "received push data: ${key}=${value}")
                 }
             }
         }
@@ -132,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         mediaChannel!!.connect()
     }
 
-    fun close() {
+    private fun close() {
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
@@ -141,18 +149,26 @@ class MainActivity : AppCompatActivity() {
     private fun dispose() {
         capturer?.stopCapture()
         capturer = null
-        ui?.releaseRenderers()
+
+        localRenderer?.release()
+        remoteRenderer?.release()
+
         egl?.release()
         egl = null
     }
 
-    // UI events
-    fun onStartButtonClicked() {
-        startWithPermissionCheck()
+    private fun disableStartButton() {
+        stopButton.isEnabled = true
+        stopButton.setBackgroundColor(Color.parseColor("#F06292"))
+        startButton.isEnabled = false
+        startButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
     }
 
-    fun onStopButtonClicked() {
-        close()
+    private fun disableStopButton() {
+        stopButton.isEnabled = false
+        stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        startButton.isEnabled = true
+        startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
     // -- PermissionDispatcher --
@@ -172,7 +188,7 @@ class MainActivity : AppCompatActivity() {
     @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun onCameraAndAudioDenied() {
         Log.d(TAG, "onCameraAndAudioDenied")
-        Snackbar.make(this.contentView!!,
+        Snackbar.make(rootLayout,
                 "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
                 Snackbar.LENGTH_LONG)
                 .setAction("OK") { }
@@ -181,115 +197,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showRationaleDialog(message: String, request: PermissionRequest) {
         AlertDialog.Builder(this)
-                .setPositiveButton(getString(R.string.permission_button_positive)) {
-                    _, _ -> request.proceed() }
-                .setNegativeButton(getString(R.string.permission_button_negative)) {
-                    _, _ -> request.cancel() }
+                .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
+                .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
                 .setCancelable(false)
                 .setMessage(message)
                 .show()
-    }
-}
-
-class MainActivityUI : AnkoComponent<MainActivity> {
-
-    val TAG = MainActivityUI::class.simpleName
-
-    private var localRenderer: SurfaceViewRenderer? = null
-    private var remoteRenderer: SurfaceViewRenderer? = null
-    private var startButton: Button? = null
-    private var stopButton: Button? = null
-
-    val localSurfaceRenderer: SurfaceViewRenderer?
-        get() = localRenderer
-
-    val remoteSurfaceRenderer: SurfaceViewRenderer?
-        get() = remoteRenderer
-
-    override fun createView(ui: AnkoContext<MainActivity>): View = with(ui) {
-
-        return verticalLayout {
-
-            padding = dip(6)
-            lparams(width = matchParent, height = matchParent)
-
-            startButton = button("START") {
-                backgroundColor = Color.parseColor("#F06292")
-                textColor = Color.WHITE
-
-                onClick {
-                    ui.owner.onStartButtonClicked()
-                    disableStartButton()
-                }
-            }.lparams {
-
-                width = matchParent
-                height = wrapContent
-                margin = dip(10)
-            }
-
-
-
-            stopButton = button("STOP") {
-                backgroundColor = Color.parseColor("#F06292")
-                textColor = Color.WHITE
-
-                onClick {
-                    ui.owner.onStopButtonClicked()
-                    disableStopButton()
-                }
-            }.lparams {
-                width = matchParent
-                height = wrapContent
-                margin = dip(10)
-            }
-
-
-
-            localRenderer = surfaceViewRenderer {
-
-                lparams {
-
-                    width = 400
-                    height = 400
-                    margin = dip(10)
-                }
-            }
-
-            remoteRenderer = surfaceViewRenderer {
-
-                lparams {
-
-                    width = 400
-                    height = 400
-                    margin = dip(10)
-                }
-            }
-        }
-    }
-
-    private fun disableStartButton() {
-        stopButton?.isEnabled = true
-        stopButton?.backgroundColor = Color.parseColor("#F06292")
-        startButton?.isEnabled = false
-        startButton?.backgroundColor = Color.parseColor("#CCCCCC")
-    }
-
-    private fun disableStopButton() {
-        stopButton?.isEnabled = false
-        stopButton?.backgroundColor = Color.parseColor("#CCCCCC")
-        startButton?.isEnabled = true
-        startButton?.backgroundColor = Color.parseColor("#F06292")
-    }
-
-    fun init(eglContext: EglBase.Context) {
-        localRenderer?.init(eglContext, null)
-        remoteRenderer?.init(eglContext, null)
-        disableStopButton()
-    }
-
-    fun releaseRenderers() {
-        localRenderer?.release()
-        remoteRenderer?.release()
     }
 }
