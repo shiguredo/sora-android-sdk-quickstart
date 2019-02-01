@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onPushMessage: push=${push}")
             val data = push.data
             if(data is Map<*, *>) {
-                for((key, value) in data) {
+                data.forEach { (key, value) ->
                     Log.d(TAG, "received push data: ${key}=${value}")
                 }
             }
