@@ -12,9 +12,13 @@
 
 ## develop
 
+
+## 1.8.0
+
 ### UPDATE
 
 - SDK のバージョンを 1.8.0 に上げた
+- SDP semantics を Unified Plan に変更した
 - Kotlin を 1.3.20 に上げた
 - Anko を依存から外した
 - Android support library から androidx に移行した
