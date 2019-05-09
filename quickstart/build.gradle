@@ -53,8 +53,14 @@ dependencies {
     kapt "org.permissionsdispatcher:permissionsdispatcher-processor:${pd_version}"
 
     // Sora Android SDK
-    implementation("com.github.shiguredo:sora-android-sdk:${sora_android_sdk_version}@aar") {
-        transitive = true
+    if (findProject(':sora-android-sdk') != null) {
+        // module is included
+        api project(':sora-android-sdk')
+    } else {
+        // external dependency
+        implementation("com.github.shiguredo:sora-android-sdk:${sora_android_sdk_version}@aar") {
+            transitive = true
+        }
     }
 }
 
