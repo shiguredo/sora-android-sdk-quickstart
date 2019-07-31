@@ -12,6 +12,11 @@
 
 ## develop
 
+### CHANGE
+
+- MODE_IN_COMMUNICATION を使うように変更した
+
+
 ## 1.8.1
 
 ### UPDATE
