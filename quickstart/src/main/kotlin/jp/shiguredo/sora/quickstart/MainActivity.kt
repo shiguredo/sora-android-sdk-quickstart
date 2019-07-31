@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private var egl: EglBase? = null
     private var oldAudioMode: Int = AudioManager.MODE_INVALID
 
+    private var audioManager: AudioManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,11 +52,10 @@ class MainActivity : AppCompatActivity() {
         remoteRenderer?.init(eglContext, null)
         disableStopButton()
 
-        val audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE)
-                as AudioManager
-        oldAudioMode = audioManager.mode
-        Log.d(TAG, "AudioManager mode change: ${oldAudioMode} => MODE_IN_COMMUNICATION(3)")
-        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        oldAudioMode = audioManager!!.mode
+        Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
+        audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
     }
 
     override fun onResume() {
@@ -65,10 +66,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
-        val audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE)
-                as AudioManager
-        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => ${oldAudioMode}")
-        audioManager.mode = oldAudioMode
+        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
+        audioManager?.run { mode = oldAudioMode }
 
         close()
         dispose()
