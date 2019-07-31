@@ -89,7 +89,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
-            Log.d(TAG, "onError")
+            Log.d(TAG, "onError [$reason]")
+            close()
+        }
+
+        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
+            SoraLogger.d(TAG, "onError [$reason]: $message")
             close()
         }
 
