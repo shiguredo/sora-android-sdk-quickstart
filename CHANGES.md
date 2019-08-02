@@ -12,7 +12,9 @@
 
 ## develop
 
-## UPDATE
+## 1.9.0
+
+### UPDATE
 
 - SDK のバージョンを 1.9.0 に上げた
 - Android Studio 3.4.2 に対応した
