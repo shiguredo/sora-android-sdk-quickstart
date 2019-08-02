@@ -1,6 +1,7 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
+import android.content.Context
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
@@ -26,6 +27,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var egl: EglBase? = null
+    private var oldAudioMode: Int = AudioManager.MODE_INVALID
+
+    private var audioManager: AudioManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +51,11 @@ class MainActivity : AppCompatActivity() {
         localRenderer?.init(eglContext, null)
         remoteRenderer?.init(eglContext, null)
         disableStopButton()
+
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        oldAudioMode = audioManager!!.mode
+        Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
+        audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
     }
 
     override fun onResume() {
@@ -57,6 +66,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
+        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
+        audioManager?.run { mode = oldAudioMode }
+
         close()
         dispose()
     }
@@ -76,7 +88,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
-            Log.d(TAG, "onError")
+            Log.d(TAG, "onError [$reason]")
+            close()
+        }
+
+        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
+            SoraLogger.d(TAG, "onError [$reason]: $message")
             close()
         }
 

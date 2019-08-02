@@ -12,6 +12,20 @@
 
 ## develop
 
+## 1.9.0
+
+### UPDATE
+
+- SDK のバージョンを 1.9.0 に上げた
+- Android Studio 3.4.2 に対応した
+- Kotlin を 1.3.41 に上げた
+- PermissionsDispatcher を 4.5.0 に上げた
+
+### CHANGE
+
+- `MODE_IN_COMMUNICATION` を使うように変更した
+
+
 ## 1.8.1
 
 ### UPDATE
