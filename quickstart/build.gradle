@@ -48,7 +48,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:1.0.2"
     implementation "com.google.android.material:material:1.0.0"
 
-    ext.pd_version = '4.3.1'
+    ext.pd_version = '4.5.0'
     implementation "org.permissionsdispatcher:permissionsdispatcher:${pd_version}"
     kapt "org.permissionsdispatcher:permissionsdispatcher-processor:${pd_version}"
 
