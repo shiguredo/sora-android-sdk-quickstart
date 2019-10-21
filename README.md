@@ -8,6 +8,11 @@
 start, stop ボタンがあるだけの 1 画面のみのシンプルなものです。
 それは、素の `SoraMediaChannel` を使ったサンプルになっています。
 
+## About Support
+
+We check PRs or Issues only when written in JAPANESE.
+In other languages, we won't be able to deal with them. Thank you for your understanding.
+
 ## Sora Android SDK
 
 Sora Android SDK は [WebRTC SFU Sora](https://sora.shiguredo.jp) の
