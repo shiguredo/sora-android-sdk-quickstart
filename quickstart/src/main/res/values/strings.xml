@@ -2,4 +2,6 @@
     <string name="app_name">Sora SDK QuickStart</string>
     <string name="permission_button_positive">許可する</string>
     <string name="permission_button_negative">許可しない</string>
+    <string name="start">接続する</string>
+    <string name="stop">接続解除する</string>
 </resources>

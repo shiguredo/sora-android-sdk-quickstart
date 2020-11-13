@@ -14,7 +14,7 @@
         android:textColor="@android:color/white"
         android:background="#F06292"
         android:layout_margin="10dp"
-        android:text="START" />
+        android:text="@string/start" />
 
     <Button
         android:id="@+id/stopButton"
@@ -23,7 +23,7 @@
         android:layout_margin="10dp"
         android:textColor="@android:color/white"
         android:background="#F06292"
-        android:text="STOP" />
+        android:text="@string/stop" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <org.webrtc.SurfaceViewRenderer
+            <jp.shiguredo.sora.sdk2.VideoView
                 android:id="@+id/remoteRenderer"
                 android:layout_width="400px"
                 android:layout_height="400px"
@@ -42,7 +42,7 @@
                 android:layout_gravity="end"
                 tools:ignore="PxUsage" />
 
-            <org.webrtc.SurfaceViewRenderer
+            <jp.shiguredo.sora.sdk2.VideoView
                 android:id="@+id/localRenderer"
                 android:layout_width="400px"
                 android:layout_height="400px"
@@ -50,6 +50,7 @@
                 android:layout_gravity="start"
                 tools:ignore="PxUsage" />
         </LinearLayout>
+
     </ScrollView>
 
 </LinearLayout>

@@ -5,19 +5,16 @@ import android.content.Context
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
-import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
-import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
-import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
-import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
-import jp.shiguredo.sora.sdk.error.SoraErrorReason
+import com.google.android.material.snackbar.Snackbar
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import org.webrtc.*
-import permissions.dispatcher.*
+import jp.shiguredo.sora.sdk2.*
 import kotlinx.android.synthetic.main.activity_main.*
+import org.webrtc.SoftwareVideoEncoderFactory
+import org.webrtc.VideoCapturer
+import permissions.dispatcher.*
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
@@ -26,10 +23,11 @@ class MainActivity : AppCompatActivity() {
         private val TAG = MainActivity::class.simpleName
     }
 
-    private var egl: EglBase? = null
-    private var oldAudioMode: Int = AudioManager.MODE_INVALID
-
+    private var oldAudioMode: Int = AudioManager.MODE_NORMAL
     private var audioManager: AudioManager? = null
+    private var configuration: Configuration? = null
+    private var mediaChannel: MediaChannel? = null
+    private var capturer: VideoCapturer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,11 +43,6 @@ class MainActivity : AppCompatActivity() {
             close()
             disableStopButton()
         }
-
-        egl = EglBase.create()
-        val eglContext = egl!!.eglBaseContext
-        localRenderer?.init(eglContext, null)
-        remoteRenderer?.init(eglContext, null)
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -68,110 +61,44 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
         audioManager?.run { mode = oldAudioMode }
-
         close()
-        dispose()
-    }
-
-    private var mediaChannel: SoraMediaChannel? = null
-    private var capturer: CameraVideoCapturer? = null
-
-    private val channelListener = object : SoraMediaChannel.Listener {
-
-        override fun onConnect(mediaChannel: SoraMediaChannel) {
-            Log.d(TAG, "onConnect")
-        }
-
-        override fun onClose(mediaChannel: SoraMediaChannel) {
-            Log.d(TAG, "onClose")
-            close()
-        }
-
-        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
-            Log.d(TAG, "onError [$reason]")
-            close()
-        }
-
-        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
-            SoraLogger.d(TAG, "onError [$reason]: $message")
-            close()
-        }
-
-        override fun onAddRemoteStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
-            Log.d(TAG, "onAddRemoteStream")
-            runOnUiThread {
-                if (ms.videoTracks.size > 0) {
-                    val track = ms.videoTracks[0]
-                    track.setEnabled(true)
-                    track.addSink(this@MainActivity.remoteRenderer)
-                }
-            }
-        }
-
-        override fun onAddLocalStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
-            Log.d(TAG, "onAddLocalStream")
-            runOnUiThread {
-                if (ms.videoTracks.size > 0) {
-                    val track = ms.videoTracks[0]
-                    track.setEnabled(true)
-                    track.addSink(this@MainActivity.localRenderer)
-                    capturer?.startCapture(400, 400, 30)
-                }
-            }
-        }
-
-        override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
-            Log.d(TAG, "onPushMessage: push=${push}")
-            val data = push.data
-            if(data is Map<*, *>) {
-                data.forEach { (key, value) ->
-                    Log.d(TAG, "received push data: ${key}=${value}")
-                }
-            }
-        }
     }
 
     @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun start() {
         Log.d(TAG, "start")
 
-        capturer = CameraCapturerFactory.create(this)
-
-        val option = SoraMediaOption().apply {
-
-            enableAudioDownstream()
-            enableVideoDownstream(egl!!.eglBaseContext)
-
-            enableAudioUpstream()
-            enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
-
-            enableMultistream()
+        configuration = Configuration(
+                context = this,
+                url = BuildConfig.SIGNALING_ENDPOINT,
+                channelId = BuildConfig.CHANNEL_ID,
+                role = Role.SENDONLY).apply {
+            multistreamEnabled = true
+            videoBitRate = 5000
         }
 
-        mediaChannel = SoraMediaChannel(
-                context           = this,
-                signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
-                channelId         = BuildConfig.CHANNEL_ID,
-                mediaOption       = option,
-                listener          = channelListener)
-        mediaChannel!!.connect()
+        Sora.connect(configuration!!) { result ->
+            mediaChannel = result.getOrNull()
+            if (mediaChannel == null)
+                return@connect
+
+            capturer = configuration!!.videoCapturer
+            capturer!!.changeCaptureFormat(1920, 1080, 30)
+            val localStream = mediaChannel!!.streams.firstOrNull()
+            if (localStream != null) {
+                localStream.videoRenderer = localRenderer
+            }
+
+            mediaChannel!!.onAddRemoteStream { stream ->
+                stream.videoRenderer = remoteRenderer
+            }
+        }
     }
 
     private fun close() {
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
-    }
-
-    private fun dispose() {
-        capturer?.stopCapture()
-        capturer = null
-
-        localRenderer?.release()
-        remoteRenderer?.release()
-
-        egl?.release()
-        egl = null
     }
 
     private fun disableStartButton() {
