@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 context = this,
                 url = BuildConfig.SIGNALING_ENDPOINT,
                 channelId = BuildConfig.CHANNEL_ID,
-                role = Role.SENDONLY).apply {
+                role = Role.SENDRECV).apply {
             multistreamEnabled = true
             videoBitRate = 5000
         }
