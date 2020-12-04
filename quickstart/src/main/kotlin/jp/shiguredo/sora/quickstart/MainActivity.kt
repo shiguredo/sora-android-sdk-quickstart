@@ -82,8 +82,14 @@ class MainActivity : AppCompatActivity() {
             if (mediaChannel == null)
                 return@connect
 
+            // 映像キャプチャ (カメラ) を取得する
+            // 受信のみの場合は null になる
             capturer = configuration!!.videoCapturer
-            capturer!!.changeCaptureFormat(1920, 1080, 30)
+            if (capturer != null) {
+                // VideoCapturer.changeCaptureFormat() でカメラの解像度を変更可能
+                capturer!!.changeCaptureFormat(1920, 1080, 30)
+            }
+
             val localStream = mediaChannel!!.streams.firstOrNull()
             if (localStream != null) {
                 localStream.videoRenderer = localRenderer
