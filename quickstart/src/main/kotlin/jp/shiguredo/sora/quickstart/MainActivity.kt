@@ -89,6 +89,13 @@ class MainActivity : AppCompatActivity() {
                 localStream.videoRenderer = localRenderer
             }
 
+            // 接続時にすでに配信されているストリームがあった場合
+            if (mediaChannel!!.streams.count() > 1) {
+                val stream = mediaChannel!!.streams[1]
+                stream.videoRenderer = remoteRenderer
+            }
+
+            // 接続後、配信ストリームが追加されたら上書きする
             mediaChannel!!.onAddRemoteStream { stream ->
                 stream.videoRenderer = remoteRenderer
             }
