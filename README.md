@@ -20,7 +20,7 @@ In other languages, we won't be able to deal with them. Thank you for your under
 Sora Android SDK は [WebRTC SFU Sora](https://sora.shiguredo.jp) の
 Android クライアントアプリケーションを開発するためのライブラリです。
 Sora Android SDK の使い方は
-[Sora Android SDK ドキュメント](https://sora.shiguredo.jp/android-sdk-doc/)
+[Sora Android SDK ドキュメント](https://sora-android-sdk.shiguredo.jp/)
 を参照してください。
 
 ## システム条件
@@ -32,7 +32,7 @@ Sora Android SDK の使い方は
 
 ## 参考リンク
 
-- [Sora Android SDK ドキュメント](https://sora.shiguredo.jp/android-sdk-doc/)
+- [Sora Android SDK ドキュメント](https://sora-android-sdk.shiguredo.jp/)
 - [サンプル集](https://github.com/shiguredo/sora-android-sdk-samples)
 
 ## Copyright
