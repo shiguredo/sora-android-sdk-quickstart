@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        override fun onAddLocalStream(mediaChannel: SoraMediaChannel, ms: MediaStream, videoSource: VideoSource?) {
+        override fun onAddLocalStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
             Log.d(TAG, "onAddLocalStream")
             runOnUiThread {
                 if (ms.videoTracks.size > 0) {
