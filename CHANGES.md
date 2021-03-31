@@ -12,6 +12,25 @@
 
 ## develop
 
+### UPDATE
+
+- SDK のバージョンを 2021.1 に上げる
+- Kotlin のバージョンを 1.4.31 に上げる
+- Gradle のバージョンを 6.8.3 に上げる
+- 依存ライブラリを更新する
+  - com.android.tools.build:gradle を 4.1.2 に上げる
+  - com.google.android.material:material を 1.3.0 に上げる
+  - org.permissionsdispatcher:permissionsdispatcher を 4.8.0 に上げる
+  - org.permissionsdispatcher:permissionsdispatcher-processor を 4.8.0 に上げる
+  - androidx.appcompat:appcompat を 1.2.0 に上げる
+
+### CHANGE
+
+- ビルドの設定を更新する
+  - compileSdkVersion を 31 に上げる
+  - targetSdkVersion を 31 に上げる
+  - minSdkVersion を 21 に上げる
+
 ## 2020.1
 
 - SDK のバージョンを 2020.1 に上げる
