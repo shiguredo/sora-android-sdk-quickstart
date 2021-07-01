@@ -10,7 +10,13 @@
     - バグ修正
 
 
-## develop
+## sora-andoroid-sdk-2021.1.1
+
+### UPDATE
+
+- SDK のバージョンを 2021.1.1 に上げる
+
+## 2021.1
 
 ### UPDATE
 
