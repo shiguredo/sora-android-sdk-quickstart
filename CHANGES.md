@@ -9,6 +9,11 @@
 - FIX
     - バグ修正
 
+## develop
+
+- 依存ライブラリーのバージョンを上げる
+  - `com.android.tools.build:gradle` を 4.2.2 に上げる
+- JCenter への参照を取り除く
 
 ## sora-andoroid-sdk-2021.1.1
 
@@ -53,7 +58,6 @@
 ### CHANGE
 
 - `MODE_IN_COMMUNICATION` を使うように変更する
-
 
 ## 1.8.1
 
