@@ -18,6 +18,6 @@ org.gradle.jvmargs=-Xmx1536m
 
 android.useAndroidX=true
 
-# Overwrite sora Signaling endpoint in build.gradle's ext.signaling_endpoint
+# Setting Sora's signaling endpoint and channel_id
 signaling_endpoint = wss://sora.example.com/signaling
 channel_id         = sora
