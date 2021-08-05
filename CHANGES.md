@@ -9,12 +9,20 @@
 - FIX
     - バグ修正
 
+## sora-andoroid-sdk-2021.2
+
+- [UPDATE] 依存ライブラリーのバージョンを上げる
+  - `com.android.tools.build:gradle` を 4.2.2 に上げる
+  - JCenter への参照を取り除く
+  - @enm10k
+
+- [UPDATE] シグナリングエンドポイント URL の設定を `/build.gradle` から `/gradle.properties.example` に移動する
+  - @miosakuma
 
 ## sora-andoroid-sdk-2021.1.1
 
-### UPDATE
-
-- SDK のバージョンを 2021.1.1 に上げる
+- [UPDATE] SDK のバージョンを 2021.1.1 に上げる
+  - @enm10k
 
 ## 2021.1
 
@@ -53,7 +61,6 @@
 ### CHANGE
 
 - `MODE_IN_COMMUNICATION` を使うように変更する
-
 
 ## 1.8.1
 
