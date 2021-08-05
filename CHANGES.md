@@ -11,11 +11,15 @@
 
 ## sora-andoroid-sdk-2021.2
 
-- [UPDATE] 依存ライブラリーのバージョンを上げる
-  - `com.android.tools.build:gradle` を 4.2.2 に上げる
-  - JCenter への参照を取り除く
+- [UPDATE] システム条件を更新する
+  - Android Studio 4.2 以降
+  - WebRTC SFU Sora 2021.1 以降
+  - Sora Android SDK 2021.2 以降
+  - @miosakuma
+- [UPDATE] `com.android.tools.build:gradle` を 4.2.2 に上げる
   - @enm10k
-
+- [UPDATE] JCenter への参照を取り除く
+  - @enm10k
 - [UPDATE] シグナリングエンドポイント URL の設定を `/build.gradle` から `/gradle.properties.example` に移動する
   - @miosakuma
 
