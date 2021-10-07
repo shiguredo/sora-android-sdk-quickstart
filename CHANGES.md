@@ -9,6 +9,12 @@
 - FIX
     - バグ修正
 
+## sora-andoroid-sdk-2021.3
+
+- [UPDATE] システム条件を更新する
+  - Sora Android SDK 2021.3 以降
+  - @miosakuma
+
 ## sora-andoroid-sdk-2021.2
 
 - [UPDATE] システム条件を更新する
