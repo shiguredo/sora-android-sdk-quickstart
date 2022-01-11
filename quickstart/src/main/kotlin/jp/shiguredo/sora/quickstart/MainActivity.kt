@@ -5,19 +5,20 @@ import android.content.Context
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
+import com.google.android.material.snackbar.Snackbar
+import com.google.gson.*
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
+import kotlinx.android.synthetic.main.activity_main.*
 import org.webrtc.*
 import permissions.dispatcher.*
-import kotlinx.android.synthetic.main.activity_main.*
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
@@ -152,6 +153,7 @@ class MainActivity : AppCompatActivity() {
                 context           = this,
                 signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
                 channelId         = BuildConfig.CHANNEL_ID,
+                signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
                 mediaOption       = option,
                 listener          = channelListener)
         mediaChannel!!.connect()
