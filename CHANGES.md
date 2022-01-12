@@ -9,6 +9,11 @@
 - FIX
     - バグ修正
 
+## sora-andoroid-sdk-2022.1.0
+
+- [ADD] シグナリング接続時に送信するメタデータを外部ファイルから設定できるようにする
+  - @miosakuma
+  
 ## sora-andoroid-sdk-2021.3
 
 - [UPDATE] システム条件を更新する
