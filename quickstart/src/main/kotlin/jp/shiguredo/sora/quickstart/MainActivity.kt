@@ -1,6 +1,7 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.media.AudioManager
@@ -64,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         this.volumeControlStream = AudioManager.STREAM_VOICE_CALL
     }
 
+    // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
+    @SuppressLint("WrongConstant")
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
