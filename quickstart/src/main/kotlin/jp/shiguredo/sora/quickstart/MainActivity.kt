@@ -1,6 +1,7 @@
 package jp.shiguredo.sora.quickstart
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.media.AudioManager
@@ -9,16 +10,26 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.*
+import com.google.gson.Gson
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import kotlinx.android.synthetic.main.activity_main.*
-import org.webrtc.*
-import permissions.dispatcher.*
+import kotlinx.android.synthetic.main.activity_main.localRenderer
+import kotlinx.android.synthetic.main.activity_main.remoteRenderer
+import kotlinx.android.synthetic.main.activity_main.rootLayout
+import kotlinx.android.synthetic.main.activity_main.startButton
+import kotlinx.android.synthetic.main.activity_main.stopButton
+import org.webrtc.CameraVideoCapturer
+import org.webrtc.EglBase
+import org.webrtc.MediaStream
+import permissions.dispatcher.NeedsPermission
+import permissions.dispatcher.OnPermissionDenied
+import permissions.dispatcher.OnShowRationale
+import permissions.dispatcher.PermissionRequest
+import permissions.dispatcher.RuntimePermissions
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
@@ -64,6 +75,8 @@ class MainActivity : AppCompatActivity() {
         this.volumeControlStream = AudioManager.STREAM_VOICE_CALL
     }
 
+    // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
+    @SuppressLint("WrongConstant")
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
@@ -122,11 +135,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
-            Log.d(TAG, "onPushMessage: push=${push}")
+            Log.d(TAG, "onPushMessage: push=$push")
             val data = push.data
-            if(data is Map<*, *>) {
+            if (data is Map<*, *>) {
                 data.forEach { (key, value) ->
-                    Log.d(TAG, "received push data: ${key}=${value}")
+                    Log.d(TAG, "received push data: $key=$value")
                 }
             }
         }
@@ -150,12 +163,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         mediaChannel = SoraMediaChannel(
-                context           = this,
-                signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
-                channelId         = BuildConfig.CHANNEL_ID,
-                signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
-                mediaOption       = option,
-                listener          = channelListener)
+            context = this,
+            signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
+            channelId = BuildConfig.CHANNEL_ID,
+            signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+            mediaOption = option,
+            listener = channelListener
+        )
         mediaChannel!!.connect()
     }
 
@@ -201,25 +215,28 @@ class MainActivity : AppCompatActivity() {
     fun showRationaleForCameraAndAudio(request: PermissionRequest) {
         Log.d(TAG, "showRationaleForCameraAndAudio")
         showRationaleDialog(
-                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request)
+            "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request
+        )
     }
 
     @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun onCameraAndAudioDenied() {
         Log.d(TAG, "onCameraAndAudioDenied")
-        Snackbar.make(rootLayout,
-                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
-                Snackbar.LENGTH_LONG)
-                .setAction("OK") { }
-                .show()
+        Snackbar.make(
+            rootLayout,
+            "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
+            Snackbar.LENGTH_LONG
+        )
+            .setAction("OK") { }
+            .show()
     }
 
     private fun showRationaleDialog(message: String, request: PermissionRequest) {
         AlertDialog.Builder(this)
-                .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
-                .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
-                .setCancelable(false)
-                .setMessage(message)
-                .show()
+            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
+            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
+            .setCancelable(false)
+            .setMessage(message)
+            .show()
     }
 }
