@@ -9,6 +9,11 @@
 - FIX
     - バグ修正
 
+## develop
+
+- [UPDATE] Kotlin Android Extensions の非推奨化に伴い、ビュー バインディングに移行する
+  - @miosakuma
+
 ## sora-andoroid-sdk-2022.1.0
 
 - [UPDATE] システム条件を更新する
