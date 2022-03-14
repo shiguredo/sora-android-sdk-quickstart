@@ -11,17 +11,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
+import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import kotlinx.android.synthetic.main.activity_main.localRenderer
-import kotlinx.android.synthetic.main.activity_main.remoteRenderer
-import kotlinx.android.synthetic.main.activity_main.rootLayout
-import kotlinx.android.synthetic.main.activity_main.startButton
-import kotlinx.android.synthetic.main.activity_main.stopButton
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
@@ -43,25 +39,28 @@ class MainActivity : AppCompatActivity() {
 
     private var audioManager: AudioManager? = null
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         SoraLogger.enabled = true
 
-        setContentView(R.layout.activity_main)
-        startButton.setOnClickListener {
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.startButton.setOnClickListener {
             disableStartButton()
             startWithPermissionCheck()
         }
-        stopButton.setOnClickListener {
+        binding.stopButton.setOnClickListener {
             close()
             disableStopButton()
         }
 
         egl = EglBase.create()
         val eglContext = egl!!.eglBaseContext
-        localRenderer?.init(eglContext, null)
-        remoteRenderer?.init(eglContext, null)
+        binding.localRenderer?.init(eglContext, null)
+        binding.remoteRenderer?.init(eglContext, null)
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -117,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addSink(this@MainActivity.remoteRenderer)
+                    track.addSink(this@MainActivity.binding.remoteRenderer)
                 }
             }
         }
@@ -128,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                 if (ms.videoTracks.size > 0) {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
-                    track.addSink(this@MainActivity.localRenderer)
+                    track.addSink(this@MainActivity.binding.localRenderer)
                     capturer?.startCapture(400, 400, 30)
                 }
             }
@@ -183,25 +182,25 @@ class MainActivity : AppCompatActivity() {
         capturer?.stopCapture()
         capturer = null
 
-        localRenderer?.release()
-        remoteRenderer?.release()
+        binding.localRenderer?.release()
+        binding.remoteRenderer?.release()
 
         egl?.release()
         egl = null
     }
 
     private fun disableStartButton() {
-        stopButton.isEnabled = true
-        stopButton.setBackgroundColor(Color.parseColor("#F06292"))
-        startButton.isEnabled = false
-        startButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.stopButton.isEnabled = true
+        binding.stopButton.setBackgroundColor(Color.parseColor("#F06292"))
+        binding.startButton.isEnabled = false
+        binding.startButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
     }
 
     private fun disableStopButton() {
-        stopButton.isEnabled = false
-        stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
-        startButton.isEnabled = true
-        startButton.setBackgroundColor(Color.parseColor("#F06292"))
+        binding.stopButton.isEnabled = false
+        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.startButton.isEnabled = true
+        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
     // -- PermissionDispatcher --
@@ -223,7 +222,7 @@ class MainActivity : AppCompatActivity() {
     fun onCameraAndAudioDenied() {
         Log.d(TAG, "onCameraAndAudioDenied")
         Snackbar.make(
-            rootLayout,
+            binding.rootLayout,
             "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
             Snackbar.LENGTH_LONG
         )
