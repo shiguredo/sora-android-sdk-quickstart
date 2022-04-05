@@ -11,6 +11,12 @@
 
 ## develop
 
+## sora-andoroid-sdk-2022.2.0
+
+- [UPDATE] システム条件を更新する
+  - Android Studio 2022.1.1 以降
+  - Sora Android SDK 2022.2.0 以降
+  - @miosakuma
 - [UPDATE] Kotlin Android Extensions の非推奨化に伴い、ビュー バインディングに移行する
   - @miosakuma
 
