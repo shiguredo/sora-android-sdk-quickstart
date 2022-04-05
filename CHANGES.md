@@ -9,8 +9,23 @@
 - FIX
     - バグ修正
 
+## develop
+
+## sora-andoroid-sdk-2022.2.0
+
+- [UPDATE] システム条件を更新する
+  - Android Studio 2022.1.1 以降
+  - Sora Android SDK 2022.2.0 以降
+  - @miosakuma
+- [UPDATE] Kotlin Android Extensions の非推奨化に伴い、ビュー バインディングに移行する
+  - @miosakuma
+
 ## sora-andoroid-sdk-2022.1.0
 
+- [UPDATE] システム条件を更新する
+  - Android Studio 2020.3.1 以降
+  - Sora Android SDK 2022.1.0 以降
+  - @miosakuma
 - [ADD] シグナリング接続時に送信するメタデータを外部ファイルから設定できるようにする
   - @miosakuma
   
