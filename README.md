@@ -26,9 +26,9 @@ Sora Android SDK の使い方は
 ## システム条件
 
 - Android 5.0 以降 (エミュレーターでの動作は保証しません)
-- Android Studio 2022.1.1 以降
-- WebRTC SFU Sora 2021.2 以降
-- Sora Android SDK 2022.2.0 以降
+- Android Studio 2021.2.1 以降
+- WebRTC SFU Sora 2022.1 以降
+- Sora Android SDK 2022.3.0 以降
 
 ## 参考リンク
 

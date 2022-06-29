@@ -11,10 +11,20 @@
 
 ## develop
 
+## sora-andoroid-sdk-2022.3.0
+
+- [UPDATE] システム条件を更新する
+  - Android Studio 2021.2.1 以降
+  - WebRTC SFU Sora 2022.1 以降
+  - Sora Android SDK 2022.3.0 以降
+  - @miosakuma
 - [UPDATE] compileSdkVersion を 31 に上げる
   - AndroidManifest.xml の Activity に `android:exported="true"` を明示的に記載する
+  - @miosakuma
 - [UPDATE] Gradle のバージョンを 7.4.2 に上げる
+  - @miosakuma
 - [UPDATE] Gktlint のバージョンを 0.45.2 に上げる
+  - @miosakuma
 - [UPDATE] 依存ライブラリを更新する
   - com.android.tools.build:gradle を 7.2.1 に上げる
   - org.jlleitschuh.gradle:ktlint-gradle を 10.3.0 に上げる
@@ -23,11 +33,12 @@
   - com.google.android.material:material を 1.6.1 に上げる
   - com.github.permissions-dispatcher:permissionsdispatcher を 4.9.2　に上げる
   - com.github.ben-manes:gradle-versions-plugin を 0.42.0 に上げる
+  - @miosakuma
 
 ## sora-andoroid-sdk-2022.2.0
 
 - [UPDATE] システム条件を更新する
-  - Android Studio 2022.1.1 以降
+  - Android Studio 2021.1.1 以降
   - Sora Android SDK 2022.2.0 以降
   - @miosakuma
 - [UPDATE] Kotlin Android Extensions の非推奨化に伴い、ビュー バインディングに移行する
