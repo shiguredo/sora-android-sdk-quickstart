@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "jp.shiguredo.sora.quickstart"
@@ -45,7 +45,7 @@ android {
 }
 
 ktlint {
-    version = "0.43.2"
+    version = "0.45.2"
     android = false
     outputToConsole = true
     reporters {
@@ -57,13 +57,13 @@ ktlint {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlin_version}"
 
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.code.gson:gson:2.9.0'
 
-    implementation "androidx.appcompat:appcompat:1.2.0"
-    implementation "com.google.android.material:material:1.3.0"
+    implementation "androidx.appcompat:appcompat:1.4.2"
+    implementation "com.google.android.material:material:1.6.1"
 
-    implementation "com.github.permissions-dispatcher:permissionsdispatcher:4.9.1"
-    kapt "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.1"
+    implementation "com.github.permissions-dispatcher:permissionsdispatcher:4.9.2"
+    kapt "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2"
 
     // Sora Android SDK
     if (findProject(':sora-android-sdk') != null) {
