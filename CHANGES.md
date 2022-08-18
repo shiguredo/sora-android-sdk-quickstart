@@ -11,6 +11,21 @@
 
 ## develop
 
+- [UPDATE] compileSdkVersion を 32 に上げる
+  - @miosakuma
+- [UPDATE] targetSdkVersion を 32 に上げる
+  - @miosakuma
+- [UPDATE] Kotlin のバージョンを 1.7.10 に上げる
+  - @miosakuma
+- [UPDATE] Gradle を 7.5.1 に上げる
+  - @miosakuma
+- [UPDATE] 依存ライブラリーのバージョンを上げる
+  - com.google.code.gson:gson を 2.9.1 に上げる
+  - androidx.appcompat:appcompat を 1.5.0 に上げる
+  - com.pinterest:ktlint を 0.45.2 に上げる
+  - com.android.tools.build:gradle を 7.2.2 に上げる
+  - @miosakuma 
+
 ## sora-andoroid-sdk-2022.3.0
 
 - [UPDATE] システム条件を更新する
