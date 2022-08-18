@@ -22,7 +22,6 @@
 - [UPDATE] 依存ライブラリーのバージョンを上げる
   - com.google.code.gson:gson を 2.9.1 に上げる
   - androidx.appcompat:appcompat を 1.5.0 に上げる
-  - com.pinterest:ktlint を 0.45.2 に上げる
   - com.android.tools.build:gradle を 7.2.2 に上げる
   - @miosakuma 
 
