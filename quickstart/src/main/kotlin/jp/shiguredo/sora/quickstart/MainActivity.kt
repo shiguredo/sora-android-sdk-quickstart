@@ -3,6 +3,7 @@ package jp.shiguredo.sora.quickstart
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
@@ -15,6 +16,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -86,6 +88,21 @@ class MainActivity : AppCompatActivity() {
         dispose()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        Log.d(TAG, "onConfigurationChanged")
+        super.onConfigurationChanged(newConfig)
+        changeCaptureFormat(newConfig.orientation)
+    }
+
+    private fun changeCaptureFormat(orientation: Int) {
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            capturer?.changeCaptureFormat(SoraVideoOption.FrameSize.Landscape.VGA.x, SoraVideoOption.FrameSize.Landscape.VGA.y, 30)
+        } else if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            capturer?.changeCaptureFormat(SoraVideoOption.FrameSize.Portrait.VGA.x, SoraVideoOption.FrameSize.Portrait.VGA.y, 30)
+        } else {
+            Log.d(TAG, "unknown orientation $orientation")
+        }
+    }
     private var mediaChannel: SoraMediaChannel? = null
     private var capturer: CameraVideoCapturer? = null
 
@@ -128,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                     val track = ms.videoTracks[0]
                     track.setEnabled(true)
                     track.addSink(this@MainActivity.binding.localRenderer)
-                    capturer?.startCapture(400, 400, 30)
+                    capturer?.startCapture(SoraVideoOption.FrameSize.Portrait.VGA.x, SoraVideoOption.FrameSize.Portrait.VGA.y, 30)
                 }
             }
         }
