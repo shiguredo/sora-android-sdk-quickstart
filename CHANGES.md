@@ -10,6 +10,10 @@
     - バグ修正
 
 ## develop
+- [UPDATE] システム条件を更新する
+    - Android Studio 2021.3.1 以降
+    - WebRTC SFU Sora 2022.2.2 以降
+    - @miosakuma
 
 ## sora-andoroid-sdk-2022.4.0
 
