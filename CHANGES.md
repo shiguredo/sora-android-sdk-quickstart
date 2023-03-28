@@ -19,6 +19,8 @@
     - @miosakuma
 - [UPDATE] `targetSdkVersion` を 33 に上げる
     - @miosakuma
+- [UPDATE] `minSdkVersion` を 26 に上げる
+    - @miosakuma
 - [UPDATE] Kotlin のバージョンを 1.8.10 に上げる
     - @miosakuma
 - [UPDATE] Compose Compiler のバージョンを 1.4.3 に上げる
