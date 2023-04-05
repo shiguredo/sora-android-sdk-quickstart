@@ -11,6 +11,32 @@
 
 ## develop
 
+## sora-andoroid-sdk-2023.1.0
+
+- [UPDATE] システム条件を更新する
+    - Android Studio 2022.1.1 以降
+    - WebRTC SFU Sora 2022.2.0 以降
+    - @miosakuma
+- [UPDATE] `compileSdkVersion` を 33 に上げる
+    - @miosakuma
+- [UPDATE] `targetSdkVersion` を 33 に上げる
+    - @miosakuma
+- [UPDATE] `minSdkVersion` を 26 に上げる
+    - @miosakuma
+- [UPDATE] Kotlin のバージョンを 1.8.10 に上げる
+    - @miosakuma
+- [UPDATE] Compose Compiler のバージョンを 1.4.3 に上げる
+    - @miosakuma
+- [UPDATE] Gradle を 7.6.1 に上げる
+    - @miosakuma
+- [UPDATE] 依存ライブラリーのバージョンを上げる
+    - com.android.tools.build:gradle を 7.4.2 に上げる
+    - com.github.ben-manes:gradle-versions-plugin を 0.46.0 に上げる
+    - org.jlleitschuh.gradle:ktlint-gradle を 11.3.1 に上げる
+    - com.google.code.gson:gson を 2.10.1 に上げる
+    - androidx.appcompat:appcompat を 1.6.1 に上げる
+    - com.google.android.material:material: を 1.8.0 に上げる
+
 ## sora-andoroid-sdk-2022.4.0
 
 - [UPDATE] compileSdkVersion を 32 に上げる
