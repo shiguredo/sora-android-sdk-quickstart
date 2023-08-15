@@ -15,6 +15,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -160,6 +161,19 @@ class MainActivity : AppCompatActivity() {
 
             enableMultistream()
         }
+        option.videoCodec = SoraVideoOption.Codec.VP9
+        option.videoVp9Params = object {
+            var profile_id: Int = 0
+        }
+//        option.videoCodec = SoraVideoOption.Codec.AV1
+//        option.videoAv1Params = object {
+//            var profile: Int = 0
+//        }
+
+//        option.videoCodec = SoraVideoOption.Codec.H264
+//        option.videoH264Params = object {
+//            var profile_level_id: String = "42e034"
+//        }
 
         mediaChannel = SoraMediaChannel(
             context = this,
