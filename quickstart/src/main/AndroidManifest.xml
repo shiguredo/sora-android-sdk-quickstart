@@ -4,7 +4,8 @@
     package="jp.shiguredo.sora.quickstart">
 
     <uses-sdk tools:overrideLibrary="android.support.v17.leanback"/>
-
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

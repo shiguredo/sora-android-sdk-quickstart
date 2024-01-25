@@ -2,15 +2,17 @@ package jp.shiguredo.sora.quickstart
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
+import jp.shiguredo.sora.audiomanager.SoraAudioManager
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
@@ -35,9 +37,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var egl: EglBase? = null
-    private var oldAudioMode: Int = AudioManager.MODE_INVALID
+    private var audioManager: SoraAudioManager? = null
 
-    private var audioManager: AudioManager? = null
+    private var isHandsfree = false
 
     private lateinit var binding: ActivityMainBinding
 
@@ -56,17 +58,50 @@ class MainActivity : AppCompatActivity() {
             close()
             disableStopButton()
         }
-
+        binding.handsfreeButtonOn.setOnClickListener {
+            Log.d(TAG, "click")
+            if (audioManager?.setHandsfree(true) == true) {
+                Log.d(TAG, "setHandsfreeOn return true")
+                isHandsfree = !isHandsfree
+            } else {
+                Log.d(TAG, "setHandsfreeOn return false")
+            }
+        }
+        binding.handsfreeButtonOff.setOnClickListener {
+            Log.d(TAG, "click")
+            if (audioManager?.setHandsfree(false) == true) {
+                Log.d(TAG, "setHandsfreeOff return true")
+                isHandsfree = !isHandsfree
+            } else {
+                Log.d(TAG, "setHandsfreeOff return false")
+            }
+        }
         egl = EglBase.create()
         val eglContext = egl!!.eglBaseContext
         binding.localRenderer?.init(eglContext, null)
         binding.remoteRenderer?.init(eglContext, null)
         disableStopButton()
 
-        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        oldAudioMode = audioManager!!.mode
-        Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
-        audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            // パーミッションがまだ許可されていない場合は、ユーザーにリクエストします
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                1
+            )
+        }
+        audioManager = SoraAudioManager.create(applicationContext)
+        audioManager?.start()
+    }
+
+    // デバイス変更のコールバック
+    private fun onAudioManagerDevicesChanged(
+        device: SoraAudioManager.AudioDevice,
+        availableDevices: Set<SoraAudioManager.AudioDevice>
+    ) {
     }
 
     override fun onResume() {
@@ -79,8 +114,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
-        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
-        audioManager?.run { mode = oldAudioMode }
 
         close()
         dispose()
@@ -165,10 +198,12 @@ class MainActivity : AppCompatActivity() {
             context = this,
             signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
             channelId = BuildConfig.CHANNEL_ID,
-            signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+            // signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+            signalingMetadata = mapOf("gender" to null, "name" to "mio"),
             mediaOption = option,
             listener = channelListener
         )
+
         mediaChannel!!.connect()
     }
 
@@ -187,6 +222,9 @@ class MainActivity : AppCompatActivity() {
 
         egl?.release()
         egl = null
+
+        audioManager?.stop()
+        audioManager = null
     }
 
     private fun disableStartButton() {
