@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -17,6 +18,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -30,10 +32,15 @@ import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.RuntimePermissions
 
 @RuntimePermissions
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SoraAudioManager.OnChangeRouteObserver {
 
     companion object {
         private val TAG = MainActivity::class.simpleName
+    }
+    override fun OnChangeRoute() {
+        Log.d(TAG, "OnChangeRoute()")
+        val handsFreeStatus = if (isHandsfree) "ON" else "OFF"
+        Toast.makeText(this, "Device has Changed, Now HandFree is " + handsFreeStatus, Toast.LENGTH_SHORT).show()
     }
 
     private var egl: EglBase? = null
@@ -59,22 +66,12 @@ class MainActivity : AppCompatActivity() {
             disableStopButton()
         }
         binding.handsfreeButtonOn.setOnClickListener {
-            Log.d(TAG, "click")
-            if (audioManager?.setHandsfree(true) == true) {
-                Log.d(TAG, "setHandsfreeOn return true")
-                isHandsfree = !isHandsfree
-            } else {
-                Log.d(TAG, "setHandsfreeOn return false")
-            }
+            audioManager?.setHandsfree(true)
+            Log.d(TAG, "handsfreeButtonOn")
         }
         binding.handsfreeButtonOff.setOnClickListener {
-            Log.d(TAG, "click")
-            if (audioManager?.setHandsfree(false) == true) {
-                Log.d(TAG, "setHandsfreeOff return true")
-                isHandsfree = !isHandsfree
-            } else {
-                Log.d(TAG, "setHandsfreeOff return false")
-            }
+            audioManager?.setHandsfree(false)
+            Log.d(TAG, "handsfreeButtonOff")
         }
         egl = EglBase.create()
         val eglContext = egl!!.eglBaseContext
@@ -94,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         audioManager = SoraAudioManager.create(applicationContext)
-        audioManager?.start()
+        audioManager?.start(this)
     }
 
     // デバイス変更のコールバック
@@ -192,6 +189,7 @@ class MainActivity : AppCompatActivity() {
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
 
             enableMultistream()
+            videoCodec = SoraVideoOption.Codec.AV1
         }
 
         mediaChannel = SoraMediaChannel(

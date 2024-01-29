@@ -23,32 +23,29 @@ import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import kotlin.Unit;
-import kotlin.jvm.functions.Function2;
-
 public class SoraAudioManager {
     private static final String TAG = "SoraAudioManager";
 
     public enum AudioDevice { SPEAKER_PHONE, WIRED_HEADSET, EARPIECE, BLUETOOTH, NONE }
 
-    public interface AudioManagerEvents {
+    public interface OnChangeRouteObserver {
         // オーディオデバイスの変更を通知するコールバック
-        void onAudioDeviceChanged(
-                AudioDevice selectedAudioDevice, Set<AudioDevice> availableAudioDevices);
+        void OnChangeRoute();
     }
 
-    private final Handler handler;
     private final Context context;
     private final AudioManager audioManager;
     private final SoraBluetoothManager bluetoothManager;
@@ -63,14 +60,9 @@ public class SoraAudioManager {
     private AudioDevice lastConnectedAudioDevice;
     private boolean isSetHandsfree;
     private boolean willOffHandsfree;
-    private AudioFocusRequest audioFocusRequest;
+    private Object audioFocus;
     @Nullable
-    private AudioManagerEvents audioManagerEvents;
-
-    public static void checkIsOnMainThread() {
-        if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
-        }
-    }
+    private OnChangeRouteObserver onChangeRouteObserver;
 
     // 有線ヘッドセットの接続を通知するレシーバー
     private class WiredHeadsetReceiver extends BroadcastReceiver {
@@ -85,10 +77,13 @@ public class SoraAudioManager {
     }
 
     public static void requestPermissions(Activity activity) {
-        if (activity.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // 承認が必要なのは API レベル 31 からなのでこの分岐で良い
+            if (activity.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
 
-            activity.requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+                activity.requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+            }
         }
     }
 
@@ -97,8 +92,7 @@ public class SoraAudioManager {
     }
 
     private SoraAudioManager(Context context) {
-        checkIsOnMainThread();
-        handler = new Handler(Looper.getMainLooper());
+        SoraThreadUtils.checkIsOnMainThread();
         this.context = context;
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         bluetoothManager = SoraBluetoothManager.create(context, this, audioManager);
@@ -121,12 +115,10 @@ public class SoraAudioManager {
      * - モード
      * - マイクミュート
      */
-    public void start() {
-        handler.post(SoraAudioManager.this::startInternal);
-    }
-
-    public void startInternal() {
-        checkIsOnMainThread();
+    public void start(OnChangeRouteObserver observer) {
+        SoraThreadUtils.checkIsOnMainThread();
+        // コールバックを設定する
+        onChangeRouteObserver = observer;
 
         // 停止時に設定に戻すため設定を保存する
         savedAudioMode = audioManager.getMode();
@@ -135,14 +127,24 @@ public class SoraAudioManager {
 
         // オーディオフォーカスを取得する
         // 前のオーディオフォーカス保持者に再生の一時停止を期待する
-        audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setAudioAttributes(
-                        new AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                                .build()
-                ).build();
-        int result = audioManager.requestAudioFocus(audioFocusRequest);
+        int result;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(
+                            new AudioAttributes.Builder()
+                                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                    .build()
+                    ).build();
+            result = audioManager.requestAudioFocus((AudioFocusRequest) audioFocus);
+        } else {
+            audioFocus = (AudioManager.OnAudioFocusChangeListener) focusChange -> {
+                // 取ったからといってその後何かするわけではないのでログだけ出す
+                Log.d(TAG, "onAudioFocusChange: " + focusChange);
+            };
+            result = audioManager.requestAudioFocus((AudioManager.OnAudioFocusChangeListener) audioFocus,
+                    AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+        }
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             Log.d(TAG, "Audio focus request granted for VOICE_CALL streams");
         } else {
@@ -173,12 +175,9 @@ public class SoraAudioManager {
     }
 
     // オーディオの制御を終了する
-    public void stop() {
-        handler.post(SoraAudioManager.this::stopInternal);
-    }
     @SuppressLint("WrongConstant")
-    public void stopInternal() {
-        checkIsOnMainThread();
+    public void stop() {
+        SoraThreadUtils.checkIsOnMainThread();
 
         // 有線ヘッドセットの接続を通知するレシーバーを解除
         context.unregisterReceiver(wiredHeadsetReceiver);
@@ -192,22 +191,30 @@ public class SoraAudioManager {
         audioManager.setMode(savedAudioMode);
 
         // オーディオフォーカスを放棄する
-        audioManager.abandonAudioFocusRequest(audioFocusRequest);
-        audioFocusRequest = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioManager.abandonAudioFocusRequest((AudioFocusRequest) audioFocus);
+        } else {
+            audioManager.abandonAudioFocus((AudioManager.OnAudioFocusChangeListener) audioFocus);
+        }
+        audioFocus = null;
 
         // コールバックを破棄する
-        audioManagerEvents = null;
+        onChangeRouteObserver = null;
+    }
+
+    // ハンズフリーかを確認する
+    public boolean isHandsfree() {
+        return audioManager.isSpeakerphoneOn();
     }
 
     // ハンズフリーに設定する
-    public boolean setHandsfree(boolean on) {
-        checkIsOnMainThread();
-        if (!on && !hasEarpiece()) {
-            return  false;
+    public void setHandsfree(boolean on) {
+        SoraThreadUtils.checkIsOnMainThread();
+        if (isSetHandsfree == on) {
+            return;
         }
         isSetHandsfree = on;
         updateAudioDeviceState();
-        return true;
     }
 
     // ハンズフリーの設定を変更する
@@ -235,7 +242,7 @@ public class SoraAudioManager {
 
     // 状態に基づいてデバイスを選択する
     public void updateAudioDeviceState() {
-        checkIsOnMainThread();
+        SoraThreadUtils.checkIsOnMainThread();
 
         if (bluetoothManager.getState() == SoraBluetoothManager.State.HEADSET_AVAILABLE
                 || bluetoothManager.getState() == SoraBluetoothManager.State.HEADSET_UNAVAILABLE
@@ -348,8 +355,8 @@ public class SoraAudioManager {
                     + "selected=" + newAudioDevice);
             setSpeakerphoneOn(newAudioDevice == AudioDevice.SPEAKER_PHONE);
             selectedAudioDevice = newAudioDevice;
-            if (audioManagerEvents != null) {
-                audioManagerEvents.onAudioDeviceChanged(selectedAudioDevice, audioDevices);
+            if (onChangeRouteObserver != null) {
+                onChangeRouteObserver.OnChangeRoute();
             }
         }
     }
