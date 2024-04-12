@@ -1,26 +1,28 @@
 # 変更履歴
 
 - UPDATE
-    - 下位互換がある変更
+  - 下位互換がある変更
 - ADD
-    - 下位互換がある追加
+  - 下位互換がある追加
 - CHANGE
-    - 下位互換のない変更
+  - 下位互換のない変更
 - FIX
-    - バグ修正
+  - バグ修正
 
 ## develop
 
+- [UPDATE] Github Actions の actions/setup-java@v4 にあげる
+  - @miosakuma
 - [FIX] Github Actions でのビルドを Java 17 にする
-    - @miosakuma
+  - @miosakuma
 
 ## sora-andoroid-sdk-2024.1.1
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2023.2.1 以降
-    - WebRTC SFU Sora 2023.2.0 以降
-    - Sora Android SDK 2024.1.1 以降
-    - @miosakuma
+  - Android Studio 2023.2.1 以降
+  - WebRTC SFU Sora 2023.2.0 以降
+  - Sora Android SDK 2024.1.1 以降
+  - @miosakuma
 
 ## sora-andoroid-sdk-2024.1.0
 
@@ -29,119 +31,119 @@ Sora Android SDK 2024.1.0 のリリースミスによりスキップしました
 ## sora-andoroid-sdk-2023.2.0
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2022.2.1 以降
-    - WebRTC SFU Sora 2023.1.0 以降
-    - Sora Android SDK 2023.2.0 以降
-    - @miosakuma
+  - Android Studio 2022.2.1 以降
+  - WebRTC SFU Sora 2023.1.0 以降
+  - Sora Android SDK 2023.2.0 以降
+  - @miosakuma
 
 ## sora-andoroid-sdk-2023.1.0
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2022.1.1 以降
-    - WebRTC SFU Sora 2022.2.0 以降
-    - @miosakuma
+  - Android Studio 2022.1.1 以降
+  - WebRTC SFU Sora 2022.2.0 以降
+  - @miosakuma
 - [UPDATE] `compileSdkVersion` を 33 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] `targetSdkVersion` を 33 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] `minSdkVersion` を 26 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Kotlin のバージョンを 1.8.10 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Compose Compiler のバージョンを 1.4.3 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Gradle を 7.6.1 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] 依存ライブラリーのバージョンを上げる
-    - com.android.tools.build:gradle を 7.4.2 に上げる
-    - com.github.ben-manes:gradle-versions-plugin を 0.46.0 に上げる
-    - org.jlleitschuh.gradle:ktlint-gradle を 11.3.1 に上げる
-    - com.google.code.gson:gson を 2.10.1 に上げる
-    - androidx.appcompat:appcompat を 1.6.1 に上げる
-    - com.google.android.material:material: を 1.8.0 に上げる
+  - com.android.tools.build:gradle を 7.4.2 に上げる
+  - com.github.ben-manes:gradle-versions-plugin を 0.46.0 に上げる
+  - org.jlleitschuh.gradle:ktlint-gradle を 11.3.1 に上げる
+  - com.google.code.gson:gson を 2.10.1 に上げる
+  - androidx.appcompat:appcompat を 1.6.1 に上げる
+  - com.google.android.material:material: を 1.8.0 に上げる
 
 ## sora-andoroid-sdk-2022.4.0
 
 - [UPDATE] compileSdkVersion を 32 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] targetSdkVersion を 32 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Kotlin のバージョンを 1.7.10 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Gradle を 7.5.1 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] 依存ライブラリーのバージョンを上げる
-    - com.google.code.gson:gson を 2.9.1 に上げる
-    - androidx.appcompat:appcompat を 1.5.0 に上げる
-    - com.android.tools.build:gradle を 7.2.2 に上げる
-    - @miosakuma
+  - com.google.code.gson:gson を 2.9.1 に上げる
+  - androidx.appcompat:appcompat を 1.5.0 に上げる
+  - com.android.tools.build:gradle を 7.2.2 に上げる
+  - @miosakuma
 
 ## sora-andoroid-sdk-2022.3.0
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2021.2.1 以降
-    - WebRTC SFU Sora 2022.1 以降
-    - Sora Android SDK 2022.3.0 以降
-    - @miosakuma
+  - Android Studio 2021.2.1 以降
+  - WebRTC SFU Sora 2022.1 以降
+  - Sora Android SDK 2022.3.0 以降
+  - @miosakuma
 - [UPDATE] compileSdkVersion を 31 に上げる
-    - AndroidManifest.xml の Activity に `android:exported="true"` を明示的に記載する
-    - @miosakuma
+  - AndroidManifest.xml の Activity に `android:exported="true"` を明示的に記載する
+  - @miosakuma
 - [UPDATE] Gradle のバージョンを 7.4.2 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] Gktlint のバージョンを 0.45.2 に上げる
-    - @miosakuma
+  - @miosakuma
 - [UPDATE] 依存ライブラリを更新する
-    - com.android.tools.build:gradle を 7.2.1 に上げる
-    - org.jlleitschuh.gradle:ktlint-gradle を 10.3.0 に上げる
-    - com.google.code.gson:gson を 2.9.0 に上げる
-    - androidx.appcompat:appcompat を 1.4.2 に上げる
-    - com.google.android.material:material を 1.6.1 に上げる
-    - com.github.permissions-dispatcher:permissionsdispatcher を 4.9.2　に上げる
-    - com.github.ben-manes:gradle-versions-plugin を 0.42.0 に上げる
-    - @miosakuma
+  - com.android.tools.build:gradle を 7.2.1 に上げる
+  - org.jlleitschuh.gradle:ktlint-gradle を 10.3.0 に上げる
+  - com.google.code.gson:gson を 2.9.0 に上げる
+  - androidx.appcompat:appcompat を 1.4.2 に上げる
+  - com.google.android.material:material を 1.6.1 に上げる
+  - com.github.permissions-dispatcher:permissionsdispatcher を 4.9.2 　に上げる
+  - com.github.ben-manes:gradle-versions-plugin を 0.42.0 に上げる
+  - @miosakuma
 
 ## sora-andoroid-sdk-2022.2.0
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2021.1.1 以降
-    - Sora Android SDK 2022.2.0 以降
-    - @miosakuma
+  - Android Studio 2021.1.1 以降
+  - Sora Android SDK 2022.2.0 以降
+  - @miosakuma
 - [UPDATE] Kotlin Android Extensions の非推奨化に伴い、ビュー バインディングに移行する
-    - @miosakuma
+  - @miosakuma
 
 ## sora-andoroid-sdk-2022.1.0
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 2020.3.1 以降
-    - Sora Android SDK 2022.1.0 以降
-    - @miosakuma
+  - Android Studio 2020.3.1 以降
+  - Sora Android SDK 2022.1.0 以降
+  - @miosakuma
 - [ADD] シグナリング接続時に送信するメタデータを外部ファイルから設定できるようにする
-    - @miosakuma
-  
+  - @miosakuma
+
 ## sora-andoroid-sdk-2021.3
 
 - [UPDATE] システム条件を更新する
-    - Sora Android SDK 2021.3 以降
-    - @miosakuma
+  - Sora Android SDK 2021.3 以降
+  - @miosakuma
 
 ## sora-andoroid-sdk-2021.2
 
 - [UPDATE] システム条件を更新する
-    - Android Studio 4.2 以降
-    - WebRTC SFU Sora 2021.1 以降
-    - Sora Android SDK 2021.2 以降
-    - @miosakuma
+  - Android Studio 4.2 以降
+  - WebRTC SFU Sora 2021.1 以降
+  - Sora Android SDK 2021.2 以降
+  - @miosakuma
 - [UPDATE] `com.android.tools.build:gradle` を 4.2.2 に上げる
-    - @enm10k
+  - @enm10k
 - [UPDATE] JCenter への参照を取り除く
-    - @enm10k
+  - @enm10k
 - [UPDATE] シグナリングエンドポイント URL の設定を `/build.gradle` から `/gradle.properties.example` に移動する
-    - @miosakuma
+  - @miosakuma
 
 ## sora-andoroid-sdk-2021.1.1
 
 - [UPDATE] SDK のバージョンを 2021.1.1 に上げる
-    - @enm10k
+  - @enm10k
 
 ## 2021.1
 
@@ -151,18 +153,18 @@ Sora Android SDK 2024.1.0 のリリースミスによりスキップしました
 - Kotlin のバージョンを 1.4.31 に上げる
 - Gradle のバージョンを 6.8.3 に上げる
 - 依存ライブラリを更新する
-    - com.android.tools.build:gradle を 4.1.2 に上げる
-    - com.google.android.material:material を 1.3.0 に上げる
-    - org.permissionsdispatcher:permissionsdispatcher を 4.8.0 に上げる
-    - org.permissionsdispatcher:permissionsdispatcher-processor を 4.8.0 に上げる
-    - androidx.appcompat:appcompat を 1.2.0 に上げる
+  - com.android.tools.build:gradle を 4.1.2 に上げる
+  - com.google.android.material:material を 1.3.0 に上げる
+  - org.permissionsdispatcher:permissionsdispatcher を 4.8.0 に上げる
+  - org.permissionsdispatcher:permissionsdispatcher-processor を 4.8.0 に上げる
+  - androidx.appcompat:appcompat を 1.2.0 に上げる
 
 ### CHANGE
 
 - ビルドの設定を更新する
-    - compileSdkVersion を 31 に上げる
-    - targetSdkVersion を 31 に上げる
-    - minSdkVersion を 21 に上げる
+  - compileSdkVersion を 31 に上げる
+  - targetSdkVersion を 31 に上げる
+  - minSdkVersion を 21 に上げる
 
 ## 2020.1
 
@@ -210,8 +212,8 @@ Sora Android SDK 2024.1.0 のリリースミスによりスキップしました
 - Kotlin を 1.2.71 に上げる
 - Android Studio 3.2.1 に対応する
 - targetSdkVersion を 27 に上げる
-    - cf. Google Developers Japan: 今後の Google Play でのアプリのセキュリティおよびパフォーマンスの改善について
-      <https://developers-jp.googleblog.com/2017/12/improving-app-security-and-performance.html>
+  - cf. Google Developers Japan: 今後の Google Play でのアプリのセキュリティおよびパフォーマンスの改善について
+    <https://developers-jp.googleblog.com/2017/12/improving-app-security-and-performance.html>
 
 ## 1.7.0
 
@@ -227,7 +229,7 @@ Sora Android SDK 2024.1.0 のリリースミスによりスキップしました
 - SDK のバージョンを 1.6.0 に上げる
 - Android Studio 3.1.2 に対応する
 - PermissionsDispatcher を 3.2.0 に上げる
-    - lint バグフィックスにより不要な SuppressLint アノテーションを削除する
+  - lint バグフィックスにより不要な SuppressLint アノテーションを削除する
 - Kotlin を 1.2.51 に上げる
 - Anko を 0.10.5 に上げる
 - 音量をボリュームキーから制御できるようにする
@@ -285,8 +287,8 @@ Sora Android SDK 2024.1.0 のリリースミスによりスキップしました
 
 - SDK のバージョンを 1.4.0 に上げる
 - Android Studio 3.0 に対応する
-    - gradle: 4.1
-    - android-maven-gradle-plugin: 2.0
+  - gradle: 4.1
+  - android-maven-gradle-plugin: 2.0
 - Kotlin 1.2.10 に上げる
 
 ## 1.3.1
