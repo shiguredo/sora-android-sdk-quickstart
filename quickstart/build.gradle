@@ -42,6 +42,7 @@ android {
     viewBinding {
         enabled = true
     }
+    namespace 'jp.shiguredo.sora.quickstart'
 }
 
 ktlint {
