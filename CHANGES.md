@@ -26,6 +26,8 @@
   - androidx.appcompat:appcompat を 1.7.0 に上げる
   - com.google.android.material:material を 1.12.0 に上げる
   - @zztkm
+- [UPDATE] compileSdkVersion を 34 に上げる
+  - Android API レベル 34 以降でコンパイルする必要がある依存ライブラリがあるため
 
 ## sora-andoroid-sdk-2024.2.0
 
