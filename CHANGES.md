@@ -21,6 +21,16 @@
   - AGP 8.5.0 対応で発生したビルドスクリプトのエラーを手動で修正した内容
     - AGP 8.0 から buildConfig がデフォルト false になったため、true に設定する
   - @zztkm
+- [UPDATE] 依存ライブラリーのバージョンを上げる
+  - com.google.code.gson:gson を 2.11.0 に上げる
+  - androidx.appcompat:appcompat を 1.7.0 に上げる
+  - com.google.android.material:material を 1.12.0 に上げる
+  - @zztkm
+- [UPDATE] compileSdkVersion を 34 に上げる
+  - Android API レベル 34 以降でコンパイルする必要がある依存ライブラリがあるため
+  - @zztkm
+- [UPDATE] Kotlin のバージョンを 1.9.25 に上げる
+  - @zztkm
 
 ## sora-andoroid-sdk-2024.2.0
 
