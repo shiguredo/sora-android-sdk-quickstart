@@ -11,9 +11,14 @@
 
 ## develop
 
+## sora-andoroid-sdk-2024.3.1
+
+**リリース日**: 2024-08-30
+
 - [UPDATE] システム条件を更新する
   - Android Studio 2024.1.1 以降
   - WebRTC SFU Sora 2024.1.0 以降
+  - Sora Android SDK 2024.3.1 以降
   - @miosakuma
 - [UPDATE] Android Gradle Plugin (AGP) を 8.5.0 にアップグレードする
   - Android Studion の AGP Upgrade Assistant を利用してアップグレードされた内容
@@ -36,6 +41,10 @@
 - [UPDATE] Kotlin のバージョンを 1.9.25 に上げる
   - @zztkm
 
+## sora-andoroid-sdk-2024.3.0
+
+Sora Android SDK 2024.3.0 のリリース作業時に発生した問題によりスキップしました。
+
 ## sora-andoroid-sdk-2024.2.0
 
 - [UPDATE] システム条件を更新する
@@ -56,7 +65,7 @@
 
 ## sora-andoroid-sdk-2024.1.0
 
-Sora Android SDK 2024.1.0 のリリースミスによりスキップしました。
+Sora Android SDK 2024.1.0 のリリース作業時に発生した問題によりスキップしました。
 
 ## sora-andoroid-sdk-2023.2.0
 
