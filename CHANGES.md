@@ -11,6 +11,9 @@
 
 ## develop
 
+- [FIX] 画面回転時に接続が切断されないようにする
+  - @miosakuma
+
 ## sora-andoroid-sdk-2024.3.1
 
 **リリース日**: 2024-08-30
