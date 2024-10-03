@@ -11,6 +11,9 @@
 
 ## develop
 
+- [UPDATE] システム条件を更新する
+  - Android Studio 2024.1.2 以降
+  - @miosakuma
 - [FIX] 画面回転時に Sora への接続が切断されないようにする
   - 画面回転時にアクティビティが再作成され、 `onDestroy()` が実行されることにより Sora から切断する処理が実行されていた
   - AndroidManifest.xml の `<activity>` に `android:configChanges` を追加して画面回転時にアクティビティが再作成を行わないように設定することで回避した
