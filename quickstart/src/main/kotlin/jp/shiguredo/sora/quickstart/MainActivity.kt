@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
+import jp.shiguredo.sora.sdk.channel.option.SoraForwardingFilterOption
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
@@ -161,13 +162,50 @@ class MainActivity : AppCompatActivity() {
             enableMultistream()
         }
 
+        // マルチ転送フィルターの設定
+        val forwardingFilters = listOf(
+            SoraForwardingFilterOption(
+                name = "filter1",
+                priority = 1,
+                action = SoraForwardingFilterOption.Action.BLOCK,
+                rules = listOf(
+                    listOf(
+                        SoraForwardingFilterOption.Rule(
+                            field = SoraForwardingFilterOption.Rule.Field.CLIENT_ID,
+                            operator = SoraForwardingFilterOption.Rule.Operator.IS_IN,
+                            values = listOf("block_sareru_kun")
+                        )
+                    )
+                ),
+                version = "1.0",
+                metadata = mapOf("key1" to "value1")
+            ),
+            SoraForwardingFilterOption(
+                name = "filter2",
+                priority = 1,
+                action = SoraForwardingFilterOption.Action.BLOCK,
+                rules = listOf(
+                    listOf(
+                        SoraForwardingFilterOption.Rule(
+                            field = SoraForwardingFilterOption.Rule.Field.KIND,
+                            operator = SoraForwardingFilterOption.Rule.Operator.IS_IN,
+                            values = listOf("audio")
+                        )
+                    )
+                ),
+                version = "1.0",
+                metadata = mapOf("key1" to "value1")
+            )
+        )
+
         mediaChannel = SoraMediaChannel(
             context = this,
             signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
             channelId = BuildConfig.CHANNEL_ID,
             signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
             mediaOption = option,
-            listener = channelListener
+            listener = channelListener,
+            forwardingFiltersOption = forwardingFilters
         )
         mediaChannel!!.connect()
     }
