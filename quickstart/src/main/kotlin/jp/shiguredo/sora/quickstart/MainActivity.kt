@@ -15,6 +15,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -26,6 +27,7 @@ import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.OnShowRationale
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.RuntimePermissions
+import java.nio.ByteBuffer
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
@@ -142,6 +144,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
+            Log.d("kensaku", "onOfferMessage: offer=$offer")
+        }
+
+        override fun onDataChannelMessage(
+            mediaChannel: SoraMediaChannel,
+            label: String,
+            data: ByteBuffer
+        ) {
+            val message = mediaChannel.dataToString(data)
+            Log.d("kensaku", "onDataChannelMessage: label=$label, message=$message")
+        }
     }
 
     @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
@@ -161,11 +176,34 @@ class MainActivity : AppCompatActivity() {
             enableMultistream()
         }
 
+        val dataChannels = listOf(
+            mapOf(
+                "label" to "#spam",
+                "direction" to "sendrecv",
+            ),
+            mapOf(
+                "label" to "#egg",
+                "max_retransmits" to 10,
+                "ordered" to false,
+                "protocol" to "bob",
+                "compress" to false,
+                "direction" to "recvonly",
+                "header" to listOf(
+                    mapOf(
+                        "type" to "sender_connection_id"
+                    )
+                )
+            ),
+        )
+
         mediaChannel = SoraMediaChannel(
             context = this,
             signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
             channelId = BuildConfig.CHANNEL_ID,
             signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+            dataChannelSignaling = true,
+            ignoreDisconnectWebSocket = false,
+            dataChannels = dataChannels,
             mediaOption = option,
             listener = channelListener
         )
