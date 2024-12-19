@@ -43,6 +43,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private var headerLengthMap: MutableMap<String, Int> = mutableMapOf()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -146,7 +148,38 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
-            Log.d("kensaku", "onOfferMessage: offer=$offer")
+            Log.d("kensaku", "onOfferMessage: offer=${offer.dataChannels}")
+
+            val dataChannels = offer.dataChannels
+            // dataChannels の null チェック
+            if (dataChannels != null) {
+                for (dataChannel in dataChannels) {
+                    // label の 先頭に # がついているものがメッセージ送信用
+                    // # がついていないものは処理しない
+                    val label = dataChannel["label"] as String
+                    if (!label.startsWith("#")) {
+                        continue
+                    }
+
+                    // dataChannel に header (List<Map<String, Any>>) がある場合は
+                    // header list の中から type: sender_connection_id の Map を取得し
+                    // length の値を取得する
+                    // NOTE: 2024.2.0 の Sora では sender_connection_id のみ対応しているので
+                    // このような単純な実装となっている
+                    val header = dataChannel["header"] as? List<*>?
+                    if (header != null) {
+                        for (headerMap in header) {
+                            if (headerMap is Map<*, *>) {
+                                if (headerMap["type"] == "sender_connection_id") {
+                                    // double で取得されるため int に変換する
+                                    val length = headerMap["length"] as Double
+                                    headerLengthMap[label] = length.toInt()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         override fun onDataChannelMessage(
@@ -154,8 +187,21 @@ class MainActivity : AppCompatActivity() {
             label: String,
             data: ByteBuffer
         ) {
-            val message = mediaChannel.dataToString(data)
-            Log.d("kensaku", "onDataChannelMessage: label=$label, message=$message")
+            // headerLengthMap に label が存在するか確認する
+            // 存在する場合はその length を取得し、以下のように分割処理する
+            // 1. 先頭から length バイト分が sender_connection_id
+            // 2. 残りがメッセージ本体
+            if (headerLengthMap.containsKey(label)) {
+                val length = headerLengthMap[label]!!
+                val senderConnectionId = ByteArray(length)
+                data.get(senderConnectionId)
+                val message = ByteArray(data.remaining())
+                data.get(message)
+                // String() で utf-8 文字列に変換する
+                Log.d("kensaku", "received data: label=$label, sender_connection_id=${String(senderConnectionId)}, message=${String(message)}")
+            } else {
+                Log.d(TAG, "received data: label=$label, message=${mediaChannel.dataToString(data)}")
+            }
         }
     }
 
