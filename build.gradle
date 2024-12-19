@@ -2,7 +2,7 @@ apply plugin: "com.github.ben-manes.versions"
 
 buildscript {
     ext.kotlin_version = '1.9.25'
-    ext.sora_android_sdk_version = 'develop-SNAPSHOT'
+    ext.sora_android_sdk_version = 'feature~simulcast-encodings-scale-resolution-down-to-SNAPSHOT'
 
     repositories {
         google()
