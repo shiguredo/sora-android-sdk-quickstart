@@ -15,6 +15,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -139,6 +140,34 @@ class MainActivity : AppCompatActivity() {
             if (data is Map<*, *>) {
                 data.forEach { (key, value) ->
                     Log.d(TAG, "received push data: $key=$value")
+                }
+            }
+        }
+
+        override fun onNotificationMessage(
+            mediaChannel: SoraMediaChannel,
+            notification: NotificationMessage
+        ) {
+            Log.d("kensaku", "onNotificationMessage: notification type=${notification.eventType}")
+            when (notification.eventType) {
+                "connection.created" -> {
+                    // timestamp が入ってるか確認
+                    Log.d("kensaku", "connection.created: timestamp=${notification.timestamp}")
+                }
+                "spotlight.focused" -> {
+                    // spotlight_number が入ってるか確認
+                    Log.d("kensaku", "spotlight.focused: spotlight_number=${notification.spotlightNumber}")
+                }
+                "audio-streaming.failed" -> {
+                    // failed_connection_id が入ってるか確認
+                    // 参考: https://sora-doc.shiguredo.jp/AUDIO_STREAMING#f27567
+                    Log.d("kensaku", "audio-streaming.failed: failed_connection_id=${notification.failedConnectionId}")
+                }
+                "ice-connection-state.changed" -> {
+                    // current_state が入ってるか確認
+                    // previous_state が入ってるか確認
+                    // 参考: https://sora-doc.shiguredo.jp/ICE_CONNECTION_STATE#149f7e
+                    Log.d("kensaku", "ice-connection-state.changed: current_state=${notification.currentState}, previous_state=${notification.previousState}")
                 }
             }
         }
