@@ -15,6 +15,8 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraSpotlightOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
@@ -148,7 +150,7 @@ class MainActivity : AppCompatActivity() {
             mediaChannel: SoraMediaChannel,
             notification: NotificationMessage
         ) {
-            Log.d("kensaku", "onNotificationMessage: notification type=${notification.eventType}")
+            Log.d("kensaku", "onNotificationMessage: event_type=${notification.eventType}")
             when (notification.eventType) {
                 "connection.created" -> {
                     // timestamp が入ってるか確認
@@ -188,6 +190,11 @@ class MainActivity : AppCompatActivity() {
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
 
             enableMultistream()
+
+            val spotlight = SoraSpotlightOption()
+            enableSpotlight(spotlight, false)
+
+            videoCodec = SoraVideoOption.Codec.VP9
         }
 
         mediaChannel = SoraMediaChannel(
