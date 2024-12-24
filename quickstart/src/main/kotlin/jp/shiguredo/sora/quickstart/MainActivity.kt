@@ -195,6 +195,8 @@ class MainActivity : AppCompatActivity() {
             enableSpotlight(spotlight, false)
 
             videoCodec = SoraVideoOption.Codec.VP9
+
+            audioStreamingLanguageCode = "ja-JP"
         }
 
         mediaChannel = SoraMediaChannel(
@@ -203,7 +205,7 @@ class MainActivity : AppCompatActivity() {
             channelId = BuildConfig.CHANNEL_ID,
             signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
             mediaOption = option,
-            listener = channelListener
+            listener = channelListener,
         )
         mediaChannel!!.connect()
     }
