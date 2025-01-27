@@ -11,7 +11,7 @@
 
 ## develop
 
-## sora-andoroid-sdk-2024.3.1
+## sora-andoroid-sdk-2025.1.0
 
 **リリース日**: 2025-01-27
 
