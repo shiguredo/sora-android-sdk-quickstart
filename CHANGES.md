@@ -13,6 +13,18 @@
 
 ## sora-andoroid-sdk-2024.3.1
 
+**リリース日**: 2025-01-27
+
+- [UPDATE] システム条件を更新する
+  - Android Studio 2024.2.2 以降
+  - @miosakuma @zztkm
+- [FIX] 画面回転時に Sora への接続が切断されないようにする
+  - 画面回転時にアクティビティが再作成され、 `onDestroy()` が実行されることにより Sora から切断する処理が実行されていた
+  - AndroidManifest.xml の `<activity>` に `android:configChanges` を追加して画面回転時にアクティビティが再作成を行わないように設定することで回避した
+  - @miosakuma
+
+## sora-andoroid-sdk-2024.3.1
+
 **リリース日**: 2024-08-30
 
 - [UPDATE] システム条件を更新する
