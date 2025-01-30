@@ -10,11 +10,11 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
@@ -149,7 +149,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
+            if (offer.encodings == null) {
+                Log.d("kensaku", "encodings is null")
+                return
+            }
             for (encoding in offer.encodings!!) {
+                if (encoding.scaleResolutionDownTo == null) {
+                    Log.d("kensaku", "scaleResolutionDownTo is null")
+                    continue
+                }
                 Log.d(
                     "kensaku",
                     "${encoding.rid}: scaleResolutionDownTo: maxWidth=${encoding.scaleResolutionDownTo!!.maxWidth}, maxHeight=${encoding.scaleResolutionDownTo!!.maxHeight}"
@@ -172,16 +180,16 @@ class MainActivity : AppCompatActivity() {
             enableAudioUpstream()
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
 
-            // enableSimulcast()
-            // videoCodec = SoraVideoOption.Codec.VP9
-            // videoBitrate = 5000
+            enableSimulcast()
+            videoCodec = SoraVideoOption.Codec.H264
+            videoBitrate = 5000
         }
 
         mediaChannel = SoraMediaChannel(
             context = this,
             signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
             channelId = BuildConfig.CHANNEL_ID,
-            signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+            signalingMetadata = null,
             mediaOption = option,
             listener = channelListener
         )
