@@ -15,7 +15,6 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
-import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
@@ -42,8 +41,6 @@ class MainActivity : AppCompatActivity() {
     private var audioManager: AudioManager? = null
 
     private lateinit var binding: ActivityMainBinding
-
-    private var headerLengthMap: MutableMap<String, Int> = mutableMapOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -175,32 +172,10 @@ class MainActivity : AppCompatActivity() {
             enableAudioUpstream()
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
 
-            enableMultistream()
-
-            enableSimulcast()
-            videoCodec = SoraVideoOption.Codec.VP9
-            videoBitrate = 5000
+            // enableSimulcast()
+            // videoCodec = SoraVideoOption.Codec.VP9
+            // videoBitrate = 5000
         }
-
-        val dataChannels = listOf(
-            mapOf(
-                "label" to "#spam",
-                "direction" to "sendrecv",
-            ),
-            mapOf(
-                "label" to "#egg",
-                "max_retransmits" to 10,
-                "ordered" to false,
-                "protocol" to "bob",
-                "compress" to false,
-                "direction" to "recvonly",
-                "header" to listOf(
-                    mapOf(
-                        "type" to "sender_connection_id"
-                    )
-                )
-            ),
-        )
 
         mediaChannel = SoraMediaChannel(
             context = this,
