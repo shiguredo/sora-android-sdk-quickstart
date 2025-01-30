@@ -11,6 +11,9 @@
 
 ## develop
 
+- [UPDATE] Sora Android SDK を 2025.2.0-canary.1 にあげる
+  - @miosakuma
+
 ## sora-andoroid-sdk-2025.1.0
 
 **リリース日**: 2025-01-27
