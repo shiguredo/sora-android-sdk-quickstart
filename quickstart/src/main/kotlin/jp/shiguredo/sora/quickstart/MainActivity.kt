@@ -142,6 +142,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        override fun onWebSocketSignalingClose(
+            mediaChannel: SoraMediaChannel,
+            code: Int,
+            reason: String
+        ) {
+            Log.d(TAG, "onWebSocketSignalingClose: code=$code, reason=$reason")
+        }
     }
 
     @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
