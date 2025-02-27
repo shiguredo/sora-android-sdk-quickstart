@@ -15,6 +15,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.SignalingDisconnectResult
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -95,8 +96,13 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onConnect")
         }
 
-        override fun onClose(mediaChannel: SoraMediaChannel) {
-            Log.d(TAG, "onClose")
+        // override fun onClose(mediaChannel: SoraMediaChannel) {
+        //     Log.d(TAG, "onClose")
+        //     close()
+        // }
+
+        override fun onClose(mediaChannel: SoraMediaChannel, result: SignalingDisconnectResult?) {
+            Log.d(TAG, "onClose: code: ${result?.code}, reason: ${result?.reason}")
             close()
         }
 
@@ -157,8 +163,6 @@ class MainActivity : AppCompatActivity() {
 
             enableAudioUpstream()
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
-
-            enableMultistream()
         }
 
         mediaChannel = SoraMediaChannel(
