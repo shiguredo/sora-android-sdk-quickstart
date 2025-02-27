@@ -15,6 +15,7 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -159,6 +160,8 @@ class MainActivity : AppCompatActivity() {
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
 
             enableMultistream()
+
+            videoCodec = SoraVideoOption.Codec.AV1
         }
 
         mediaChannel = SoraMediaChannel(
