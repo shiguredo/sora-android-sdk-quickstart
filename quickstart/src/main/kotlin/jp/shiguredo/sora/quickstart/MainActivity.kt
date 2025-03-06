@@ -54,7 +54,6 @@ class MainActivity : AppCompatActivity() {
         }
         binding.stopButton.setOnClickListener {
             close()
-            disableStopButton()
         }
 
         egl = EglBase.create()
@@ -173,6 +172,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun close() {
+        // UI 更新系処理は runOnUiThread で行う
+        runOnUiThread {
+            disableStopButton()
+        }
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()

@@ -11,8 +11,11 @@
 
 ## develop
 
-- [UPDATE] Sora Android SDK を 2025.2.0-canary.1 にあげる
-  - @miosakuma
+- [UPDATE] Sora Android SDK を 2025.2.0-canary.2 にあげる
+  - @miosakuma @zztkm
+- [UPDATE] `close` メソッド内で `disableStopButton` を呼び出すようにする
+  - `close` は OkHttp のワーカースレッドで実行される可能性があり、ワーカースレッドでは UI を操作できないため、`disableStopButton` を必ず UI スレッドで呼び出すようにした
+  - @zztkm
 
 ### misc
 
