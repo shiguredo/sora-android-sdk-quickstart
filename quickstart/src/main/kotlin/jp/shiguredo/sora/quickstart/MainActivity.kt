@@ -13,7 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
-import jp.shiguredo.sora.sdk.channel.SoraCloseResult
+import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
@@ -95,8 +95,8 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onConnect")
         }
 
-        override fun onClose(mediaChannel: SoraMediaChannel, closeResult: SoraCloseResult?) {
-            Log.d(TAG, "onClose $closeResult")
+        override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent?) {
+            Log.d(TAG, "onClose $closeEvent")
             close()
         }
 
