@@ -16,6 +16,10 @@
 - [UPDATE] `close` メソッド内で `disableStopButton` を呼び出すようにする
   - `close` は OkHttp のワーカースレッドで実行される可能性があり、ワーカースレッドでは UI を操作できないため、`disableStopButton` を必ず UI スレッドで呼び出すようにした
   - @zztkm
+- [UPDATE] シグナリング URL を複数指定できるようにする
+  - エンドポイントを複数指定できるように変更
+  - 今まで通り 1 つのエンドポイントを指定することも可能
+  - @zztkm
 
 ### misc
 

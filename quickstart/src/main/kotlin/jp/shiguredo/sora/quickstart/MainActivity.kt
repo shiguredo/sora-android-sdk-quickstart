@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
 
         mediaChannel = SoraMediaChannel(
             context = this,
-            signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
+            signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map{ it.trim() },
             channelId = BuildConfig.CHANNEL_ID,
             signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
             mediaOption = option,
