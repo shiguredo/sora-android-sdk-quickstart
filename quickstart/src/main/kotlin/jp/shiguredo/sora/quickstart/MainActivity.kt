@@ -106,8 +106,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
-            SoraLogger.d(TAG, "onError [$reason]: $message")
+            Log.d(TAG, "onError [$reason]: $message")
             close()
+        }
+
+        override fun onWarning(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
+            Log.d(TAG, "onWarning [$reason]")
+        }
+
+        override fun onWarning(
+            mediaChannel: SoraMediaChannel,
+            reason: SoraErrorReason,
+            message: String
+        ) {
+            Log.d(TAG, "onWarning [$reason]: $message")
         }
 
         override fun onAddRemoteStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
