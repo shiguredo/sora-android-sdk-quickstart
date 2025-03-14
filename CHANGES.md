@@ -20,6 +20,9 @@
   - エンドポイントを複数指定できるように変更
   - 今まで通り 1 つのエンドポイントを指定することも可能
   - @zztkm
+- [UPDATE] `SoraMediaChannel.Listener` の実装を追加する
+  - `onRemoveRemoteStream` を用いてリモートストリームが削除された時に画面をクリアするようにした
+  - @zztkm
 
 ### misc
 

@@ -121,6 +121,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        override fun onRemoveRemoteStream(mediaChannel: SoraMediaChannel, label: String) {
+            Log.d(TAG, "onRemoveRemoteStream")
+            runOnUiThread {
+                binding.remoteRenderer.clearImage()
+            }
+        }
+
         override fun onAddLocalStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
             Log.d(TAG, "onAddLocalStream")
             runOnUiThread {
