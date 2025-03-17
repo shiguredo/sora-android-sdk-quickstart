@@ -15,7 +15,10 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
+import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
+import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -160,6 +163,25 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "received push data: $key=$value")
                 }
             }
+        }
+
+        override fun onAttendeesCountUpdated(
+            mediaChannel: SoraMediaChannel,
+            attendees: ChannelAttendeesCount
+        ) {
+            // 視聴者数を更新する
+            Log.d(TAG, "onAttendeesCountUpdated: $attendees")
+        }
+
+        override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
+            Log.d(TAG, "onOfferMessage: offer=$offer")
+        }
+
+        override fun onNotificationMessage(
+            mediaChannel: SoraMediaChannel,
+            notification: NotificationMessage
+        ) {
+            Log.d(TAG, "onNotificationMessage: notification=$notification")
         }
     }
 
