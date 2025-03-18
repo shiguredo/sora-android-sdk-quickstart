@@ -99,7 +99,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent?) {
-            Log.d(TAG, "onClose $closeEvent")
+            when {
+                closeEvent == null -> Log.i(TAG, "onClose: 切断されました")
+                closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
+                else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
+            }
             close()
         }
 
@@ -115,14 +119,6 @@ class MainActivity : AppCompatActivity() {
 
         override fun onWarning(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
             Log.d(TAG, "onWarning [$reason]")
-        }
-
-        override fun onWarning(
-            mediaChannel: SoraMediaChannel,
-            reason: SoraErrorReason,
-            message: String
-        ) {
-            Log.d(TAG, "onWarning [$reason]: $message")
         }
 
         override fun onAddRemoteStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
