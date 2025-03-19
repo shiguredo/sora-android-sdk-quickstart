@@ -21,7 +21,12 @@
   - 今まで通り 1 つのエンドポイントを指定することも可能
   - @zztkm
 - [UPDATE] `SoraMediaChannel.Listener` の実装を追加する
+  - `onClose` で closeEvent に応じてログを出力するようにした
+  - `onWarning` を追加した
   - `onRemoveRemoteStream` を用いてリモートストリームが削除された時に画面をクリアするようにした
+  - `onAttendeesCountUpdated` で接続数をログに出力するようにした
+  - `onOfferMessage` で Sora から受信した Offer メッセージをログに出力するようにした
+  - `onNotificationMessage` で通知内容をログに出力するようにした
   - @zztkm
 
 ### misc

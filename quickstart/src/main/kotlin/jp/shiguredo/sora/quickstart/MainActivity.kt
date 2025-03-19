@@ -165,7 +165,6 @@ class MainActivity : AppCompatActivity() {
             mediaChannel: SoraMediaChannel,
             attendees: ChannelAttendeesCount
         ) {
-            // 視聴者数を更新する
             Log.d(TAG, "onAttendeesCountUpdated: $attendees")
         }
 
