@@ -15,7 +15,10 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
+import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
+import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
@@ -96,7 +99,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent?) {
-            Log.d(TAG, "onClose $closeEvent")
+            when {
+                closeEvent == null -> Log.i(TAG, "onClose: 切断されました")
+                closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
+                else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
+            }
             close()
         }
 
@@ -106,8 +113,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
-            SoraLogger.d(TAG, "onError [$reason]: $message")
+            Log.d(TAG, "onError [$reason]: $message")
             close()
+        }
+
+        override fun onWarning(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
+            Log.d(TAG, "onWarning [$reason]")
         }
 
         override fun onAddRemoteStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
@@ -118,6 +129,13 @@ class MainActivity : AppCompatActivity() {
                     track.setEnabled(true)
                     track.addSink(this@MainActivity.binding.remoteRenderer)
                 }
+            }
+        }
+
+        override fun onRemoveRemoteStream(mediaChannel: SoraMediaChannel, label: String) {
+            Log.d(TAG, "onRemoveRemoteStream")
+            runOnUiThread {
+                binding.remoteRenderer.clearImage()
             }
         }
 
@@ -141,6 +159,24 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "received push data: $key=$value")
                 }
             }
+        }
+
+        override fun onAttendeesCountUpdated(
+            mediaChannel: SoraMediaChannel,
+            attendees: ChannelAttendeesCount
+        ) {
+            Log.d(TAG, "onAttendeesCountUpdated: $attendees")
+        }
+
+        override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
+            Log.d(TAG, "onOfferMessage: offer=$offer")
+        }
+
+        override fun onNotificationMessage(
+            mediaChannel: SoraMediaChannel,
+            notification: NotificationMessage
+        ) {
+            Log.d(TAG, "onNotificationMessage: notification=$notification")
         }
     }
 
