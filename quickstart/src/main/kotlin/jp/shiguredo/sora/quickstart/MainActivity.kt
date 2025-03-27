@@ -187,14 +187,11 @@ class MainActivity : AppCompatActivity() {
         capturer = CameraCapturerFactory.create(this)
 
         val option = SoraMediaOption().apply {
-
             enableAudioDownstream()
             enableVideoDownstream(egl!!.eglBaseContext)
 
             enableAudioUpstream()
             enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
-
-            enableMultistream()
         }
 
         mediaChannel = SoraMediaChannel(
