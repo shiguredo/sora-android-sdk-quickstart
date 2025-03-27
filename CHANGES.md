@@ -11,6 +11,9 @@
 
 ## develop
 
+- [CHANGE] `SoraMediaOption` 設定時に `enableMultistream()` を適用しないようにする
+  - Sora がデフォルトでレガシーストリームを使用するように設定されている場合、接続エラーになる
+  - @zztkm
 - [UPDATE] Sora Android SDK を 2025.2.0-canary.4 にあげる
   - @miosakuma @zztkm
 - [UPDATE] `close` メソッド内で `disableStopButton` を呼び出すようにする
