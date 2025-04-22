@@ -2,7 +2,7 @@ apply plugin: "com.github.ben-manes.versions"
 
 buildscript {
     ext.kotlin_version = '1.9.25'
-    ext.sora_android_sdk_version = 'feature~add-callback-ws-close-frame-reason-SNAPSHOT'
+    ext.sora_android_sdk_version = 'feature~test-ca-cert-SNAPSHOT'
 
     repositories {
         google()
