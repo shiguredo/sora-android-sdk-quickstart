@@ -26,6 +26,9 @@ import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.OnShowRationale
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.RuntimePermissions
+import java.io.InputStream
+import java.security.cert.Certificate
+import java.security.cert.CertificateFactory
 
 @RuntimePermissions
 class MainActivity : AppCompatActivity() {
@@ -100,11 +103,6 @@ class MainActivity : AppCompatActivity() {
             close()
         }
 
-        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
-            Log.d(TAG, "onError [$reason]")
-            close()
-        }
-
         override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
             SoraLogger.d(TAG, "onError [$reason]: $message")
             close()
@@ -142,14 +140,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        override fun onWebSocketSignalingClose(
-            mediaChannel: SoraMediaChannel,
-            code: Int,
-            reason: String
-        ) {
-            Log.d(TAG, "onWebSocketSignalingClose: code=$code, reason=$reason")
-        }
     }
 
     @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
@@ -169,12 +159,20 @@ class MainActivity : AppCompatActivity() {
             enableMultistream()
         }
 
+        // CA証明書の読み込み
+        val inputStream: InputStream = this.resources.openRawResource(R.raw.private_ca)
+        val certificateFactory = CertificateFactory.getInstance("X.509")
+        val certificate: Certificate = inputStream.use { certStream ->
+            certificateFactory.generateCertificate(certStream)
+        }
+
         mediaChannel = SoraMediaChannel(
             context = this,
             signalingEndpoint = BuildConfig.SIGNALING_ENDPOINT,
             channelId = BuildConfig.CHANNEL_ID,
             signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
             mediaOption = option,
+            caCertificate = certificate,
             listener = channelListener
         )
         mediaChannel!!.connect()
