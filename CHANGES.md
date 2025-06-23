@@ -11,10 +11,13 @@
 
 ## develop
 
+- [CHANGE] 廃止された `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason)` を削除する
+  - `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String)` のみを実装するように変更
+  - @zztkm
 - [CHANGE] `SoraMediaOption` 設定時に `enableMultistream()` を適用しないようにする
   - Sora がデフォルトでレガシーストリームを使用するように設定されている場合、接続エラーになる
   - @zztkm
-- [UPDATE] Sora Android SDK を 2025.2.0-canary.4 にあげる
+- [UPDATE] Sora Android SDK を 2025.2.0-canary.11 にあげる
   - @miosakuma @zztkm
 - [UPDATE] `close` メソッド内で `disableStopButton` を呼び出すようにする
   - `close` は OkHttp のワーカースレッドで実行される可能性があり、ワーカースレッドでは UI を操作できないため、`disableStopButton` を必ず UI スレッドで呼び出すようにした
