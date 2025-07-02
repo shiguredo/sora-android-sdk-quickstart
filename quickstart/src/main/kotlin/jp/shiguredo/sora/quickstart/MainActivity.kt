@@ -98,9 +98,8 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onConnect")
         }
 
-        override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent?) {
+        override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent) {
             when {
-                closeEvent == null -> Log.i(TAG, "onClose: 切断されました")
                 closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
                 else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
             }
