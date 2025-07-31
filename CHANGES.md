@@ -28,8 +28,10 @@
   - Gradle を 8.14.3 に上げる
   - com.google.code.gson:gson を 2.13.1 に上げる
   - @miosakuma
-- [UPDATE] activity_main.xml に `android:fitsSystemWindows="true"` を指定する
-  - targetSdkVersion 35 以降 edge-to-edge が適用される変更に対する対応
+- [UPDATE] edge-to-edge の画面表示に対応する
+  - targetSdkVersion 35 以降 edge-to-edge の画面表示がデフォルトとなった
+  - activity_main.xml に `android:fitsSystemWindows="true"` を指定する
+  - バックグラウンドカラーを白以外にしてステータスバーの文字が見えるようにする
   - @miosakuma
 - [UPDATE] `close` メソッド内で `disableStopButton` を呼び出すようにする
   - `close` は OkHttp のワーカースレッドで実行される可能性があり、ワーカースレッドでは UI を操作できないため、`disableStopButton` を必ず UI スレッドで呼び出すようにした
