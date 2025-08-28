@@ -1,0 +1,62 @@
+[versions]
+# Build tools
+android-gradle-plugin = "8.11.1"
+kotlin = "2.0.20"
+ktlint-gradle = "11.3.1"
+versions-plugin = "0.46.0"
+android-maven-plugin = "2.1"
+
+# Android
+compileSdk = "36"
+minSdk = "26"
+targetSdk = "36"
+
+# Java/JVM
+jvmTarget = "1.8"
+javaCompatibility = "1.8"
+
+# Sora
+sora-android-sdk = "2025.2.0-canary.14"
+
+# Libraries
+gson = "2.13.1"
+androidx-appcompat = "1.7.0"
+material = "1.12.0"
+permissions-dispatcher = "4.9.2"
+
+# ktlint
+ktlint = "0.45.2"
+
+[libraries]
+# Build tools
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradle-plugin" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
+ben-manes-versions-plugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versions-plugin" }
+android-maven-gradle-plugin = { module = "com.github.dcendents:android-maven-gradle-plugin", version.ref = "android-maven-plugin" }
+
+# Kotlin
+kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
+
+# Main libraries
+sora-android-sdk = { module = "com.github.shiguredo:sora-android-sdk", version.ref = "sora-android-sdk" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+# Android UI
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+
+# Permissions
+permissions-dispatcher = { module = "com.github.permissions-dispatcher:permissionsdispatcher", version.ref = "permissions-dispatcher" }
+permissions-dispatcher-processor = { module = "com.github.permissions-dispatcher:permissionsdispatcher-processor", version.ref = "permissions-dispatcher" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
+android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+android-maven = { id = "com.github.dcendents.android-maven", version.ref = "android-maven-plugin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "versions-plugin" }
+
+[bundles]
