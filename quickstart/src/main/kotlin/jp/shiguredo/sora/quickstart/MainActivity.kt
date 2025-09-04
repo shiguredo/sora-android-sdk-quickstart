@@ -62,8 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         egl = EglBase.create()
         val eglContext = egl!!.eglBaseContext
-        binding.localRenderer?.init(eglContext, null)
-        binding.remoteRenderer?.init(eglContext, null)
+        binding.localRenderer.init(eglContext, null)
+        binding.remoteRenderer.init(eglContext, null)
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -213,8 +213,8 @@ class MainActivity : AppCompatActivity() {
         capturer?.stopCapture()
         capturer = null
 
-        binding.localRenderer?.release()
-        binding.remoteRenderer?.release()
+        binding.localRenderer.release()
+        binding.remoteRenderer.release()
 
         egl?.release()
         egl = null
