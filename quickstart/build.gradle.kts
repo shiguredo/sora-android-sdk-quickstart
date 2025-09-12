@@ -86,14 +86,10 @@ dependencies {
     kapt(libs.permissions.dispatcher.processor)
 
     // Sora Android SDK
-    if (findProject(":sora-android-sdk") != null) {
-        // module is included
-        api(project(":sora-android-sdk"))
-    } else {
-        // external dependency
-        implementation("${libs.sora.android.sdk.get()}@aar") {
-            isTransitive = true
-        }
+    // composite build 時は dependencySubstitution により project へ置換される
+    // 非 composite 時は外部依存として解決される
+    implementation(libs.sora.android.sdk) {
+        isTransitive = true
     }
 }
 
