@@ -9,7 +9,7 @@
 - FIX
   - バグ修正
 
-## develop
+## 2025.2
 
 - [CHANGE] 廃止された `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason)` を削除する
   - `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String)` のみを実装するように変更
