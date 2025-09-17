@@ -9,7 +9,9 @@
 - FIX
   - バグ修正
 
-## 2025.2
+## sora-andoroid-sdk-2025.2.0
+
+**リリース日**: 2025-09-17
 
 - [CHANGE] 廃止された `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason)` を削除する
   - `onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String)` のみを実装するように変更
@@ -17,7 +19,11 @@
 - [CHANGE] `SoraMediaOption` 設定時に `enableMultistream()` を適用しないようにする
   - Sora がデフォルトでレガシーストリームを使用するように設定されている場合、接続エラーになる
   - @zztkm
-- [UPDATE] Sora Android SDK を 2025.2.0-canary.14 にあげる
+- [UPDATE] システム条件を更新する
+  - Android Studio 2025.1.1 以降
+  - WebRTC SFU Sora 2025.1.0 以降
+  - @miosakuma
+- [UPDATE] Sora Android SDK を 2025.2.0 にあげる
   - @miosakuma @zztkm
 - [UPDATE] `compileSdkVersion` を 36 に上げる
   - @miosakuma
