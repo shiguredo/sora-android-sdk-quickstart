@@ -62,10 +62,7 @@ android {
 }
 
 ktlint {
-    // ktlint バージョンは以下の理由によりハードコーディングしている
-    // - Gradleの設計上の制限: プラグイン設定の評価タイミングが早すぎる
-    // - ktlint-gradleプラグインの仕様: 動的な値の解決に対応していない
-    // - Version Catalogの制約: プラグイン設定フェーズでは利用不可
+    // 設定フェーズでは動的解決や Version Catalog を使えないため固定
     version.set("0.45.2")
     android.set(false)
     outputToConsole.set(true)
@@ -90,9 +87,7 @@ dependencies {
         api(project(":sora-android-sdk"))
     } else {
         // external dependency
-        implementation("${libs.sora.android.sdk.get()}@aar") {
-            isTransitive = true
-        }
+        implementation(libs.sora.android.sdk)
     }
 }
 
