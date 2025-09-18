@@ -29,3 +29,10 @@ channel_id         = sora
 # e.g.) signaling_metadata = {\\"spam\\":\\"egg\\"}
 # This setting is required. If you do not want to use it, set it to blank.
 signaling_metadata =
+
+# Local Sora Android SDK (composite build)
+# Specify this only when you want to include your local
+# sora-android-sdk via a composite build instead of resolving
+# the dependency from JitPack. Leave it unset otherwise.
+# Example: /absolute/path/to/sora-android-sdk
+soraSdkDirPath =

@@ -9,6 +9,14 @@
 - FIX
   - バグ修正
 
+## develop
+
+- [UPDATE] ローカルの sora-android-sdk を Composite build で取り込めるようにする
+  - gradle.properties.example にローカルの sora-android-sdk のソースコードのパスを指定する `soraSdkDirPath` キーを追加
+  - settings.gradle.kts に `soraSdkDirPath` のパスを Composite build で取り込む処理を追加
+  - settings.gradle.kts の実装は Composite build 利用時のみコメントアウトする。デフォルトでは JitPack 経由での SDK 利用となる
+  - @t-miya
+
 ## 2025.3
 
 - [UPDATE] Sora Android SDK を 2025.3.0 にあげる
