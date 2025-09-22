@@ -102,13 +102,22 @@ class MainActivity : AppCompatActivity() {
         // if (isFinishing) { close(); dispose() }
     }
 
-    // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
     @SuppressLint("WrongConstant")
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
-        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
-        audioManager?.run { mode = oldAudioMode }
+        // AudioManager のモードを起動前の状態に戻す。
+        // oldAudioMode は初期値として MODE_INVALID を使っており、
+        // これは「復元不要」を示すセンチネル。MODE_INVALID のまま代入すると
+        // Lint の WrongConstant が発生し得るため、チェックしてから復元する。
+        audioManager?.let { am ->
+            if (oldAudioMode != AudioManager.MODE_INVALID) {
+                Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
+                am.mode = oldAudioMode
+            } else {
+                Log.d(TAG, "AudioManager mode unchanged (oldAudioMode is MODE_INVALID)")
+            }
+        }
 
         close()
         dispose()
@@ -205,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         val eglContext = egl?.eglBaseContext ?: run {
             Log.e(TAG, "EGL is not initialized")
             Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            restoreUiOnStartFailure()
             return
         }
 
@@ -212,6 +222,7 @@ class MainActivity : AppCompatActivity() {
         if (cap == null) {
             Log.e(TAG, "Failed to create camera capturer")
             Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            restoreUiOnStartFailure()
             return
         }
         capturer = cap
@@ -235,38 +246,55 @@ class MainActivity : AppCompatActivity() {
         mediaChannel?.connect()
     }
 
+    private fun restoreUiOnStartFailure() {
+        runOnUiThread {
+            // 開始失敗時は開始前の状態へ戻す（Start有効・Stop無効）
+            enableStartButton()
+        }
+    }
+
+    private fun enableStartButton() {
+        binding.stopButton.isEnabled = false
+        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.startButton.isEnabled = true
+        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+    }
+
     private fun tryStartWithPermissions() {
-        if (allPermissionsGranted()) {
+        val check = evaluatePermissions()
+        if (check.allGranted) {
             disableStartButton()
             start()
             return
         }
 
-        val missing = missingPermissionsArray()
-        val shouldShow = requiredPermissions.any { perm -> shouldShowRequestPermissionRationale(perm) }
+        val shouldShow = check.missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
         if (shouldShow) {
             showRationaleDialog(
                 "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
             ) {
-                permissionsLauncher.launch(missing)
+                permissionsLauncher.launch(check.missing)
             }
         } else {
-            permissionsLauncher.launch(missing)
+            permissionsLauncher.launch(check.missing)
         }
     }
 
     private fun hasPermission(perm: String): Boolean =
         ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
 
-    private fun allPermissionsGranted(): Boolean {
-        for (perm in requiredPermissions) {
-            if (!hasPermission(perm)) return false
-        }
-        return true
-    }
+    private data class PermissionCheck(
+        val allGranted: Boolean,
+        val missing: Array<String>
+    )
 
-    private fun missingPermissionsArray(): Array<String> =
-        requiredPermissions.filterNot { hasPermission(it) }.toTypedArray()
+    private fun evaluatePermissions(): PermissionCheck {
+        val missing = ArrayList<String>(requiredPermissions.size)
+        for (perm in requiredPermissions) {
+            if (!hasPermission(perm)) missing.add(perm)
+        }
+        return PermissionCheck(missing.isEmpty(), missing.toTypedArray())
+    }
 
     private fun close() {
         // UI 更新系処理は runOnUiThread で行う
