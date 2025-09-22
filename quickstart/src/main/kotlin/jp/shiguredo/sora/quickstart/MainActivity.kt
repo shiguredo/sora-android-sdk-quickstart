@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    // -- Permissions (Activity Result API) --
     private val requiredPermissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val allGranted = requiredPermissions.all { perm -> result[perm] == true }
+            val allGranted = requiredPermissions.all { hasPermission(it) }
             if (allGranted) {
                 disableStartButton()
                 start()
@@ -70,7 +71,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         egl = EglBase.create()
-        val eglContext = egl!!.eglBaseContext
+        val eglContext = egl?.eglBaseContext
+        if (eglContext == null) {
+            Log.e(TAG, "EGL context initialization failed")
+            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            finish()
+            return
+        }
         binding.localRenderer.init(eglContext, null)
         binding.remoteRenderer.init(eglContext, null)
         disableStopButton()
@@ -84,6 +91,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         this.volumeControlStream = AudioManager.STREAM_VOICE_CALL
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // 異常終了やバックグラウンド遷移時のリーク抑止
+        close()
+        dispose()
     }
 
     // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
@@ -186,14 +200,26 @@ class MainActivity : AppCompatActivity() {
     fun start() {
         Log.d(TAG, "start")
 
-        capturer = CameraCapturerFactory.create(this)
+        val eglContext = egl?.eglBaseContext ?: run {
+            Log.e(TAG, "EGL is not initialized")
+            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        val cap = CameraCapturerFactory.create(this)
+        if (cap == null) {
+            Log.e(TAG, "Failed to create camera capturer")
+            Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            return
+        }
+        capturer = cap
 
         val option = SoraMediaOption().apply {
             enableAudioDownstream()
-            enableVideoDownstream(egl!!.eglBaseContext)
+            enableVideoDownstream(eglContext)
 
             enableAudioUpstream()
-            enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
+            enableVideoUpstream(cap, eglContext)
         }
 
         mediaChannel = SoraMediaChannel(
@@ -204,30 +230,34 @@ class MainActivity : AppCompatActivity() {
             mediaOption = option,
             listener = channelListener
         )
-        mediaChannel!!.connect()
+        mediaChannel?.connect()
     }
 
     private fun tryStartWithPermissions() {
-        val allGranted = requiredPermissions.all { perm ->
-            ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
-        }
-        if (allGranted) {
+        val missing = missingPermissions()
+        if (missing.isEmpty()) {
             disableStartButton()
             start()
             return
         }
 
-        val shouldShow = requiredPermissions.any { perm -> shouldShowRequestPermissionRationale(perm) }
+        val shouldShow = missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
         if (shouldShow) {
             showRationaleDialog(
                 "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
             ) {
-                permissionsLauncher.launch(requiredPermissions)
+                permissionsLauncher.launch(missing.toTypedArray())
             }
         } else {
-            permissionsLauncher.launch(requiredPermissions)
+            permissionsLauncher.launch(missing.toTypedArray())
         }
     }
+
+    private fun hasPermission(perm: String): Boolean =
+        ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
+
+    private fun missingPermissions(): List<String> =
+        requiredPermissions.filterNot { hasPermission(it) }
 
     private fun close() {
         // UI 更新系処理は runOnUiThread で行う
@@ -264,8 +294,7 @@ class MainActivity : AppCompatActivity() {
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
-    // -- Permissions (Activity Result API) --
-    fun onCameraAndAudioDenied() {
+    private fun onCameraAndAudioDenied() {
         Log.d(TAG, "onCameraAndAudioDenied")
         Snackbar.make(
             binding.rootLayout,
