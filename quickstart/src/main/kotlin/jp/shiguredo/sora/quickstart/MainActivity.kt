@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            // 直近リクエストの結果で判定（null 安全）
+            // 直近リクエストの結果で判定
             val allGranted = result.values.all { it == true }
             if (allGranted) {
                 disableStartButton()
@@ -289,11 +289,10 @@ class MainActivity : AppCompatActivity() {
     )
 
     private fun evaluatePermissions(): PermissionCheck {
-        val missing = ArrayList<String>(requiredPermissions.size)
-        for (perm in requiredPermissions) {
-            if (!hasPermission(perm)) missing.add(perm)
-        }
-        return PermissionCheck(missing.isEmpty(), missing.toTypedArray())
+        val missing = requiredPermissions
+            .filterNot(::hasPermission)
+            .toTypedArray()
+        return PermissionCheck(missing.isEmpty(), missing)
     }
 
     private fun close() {
