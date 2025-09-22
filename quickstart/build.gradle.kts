@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.ktlint)
 }
 
@@ -77,9 +76,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-
-    implementation(libs.permissions.dispatcher)
-    kapt(libs.permissions.dispatcher.processor)
 
     // Sora Android SDK
     if (findProject(":sora-android-sdk") != null) {

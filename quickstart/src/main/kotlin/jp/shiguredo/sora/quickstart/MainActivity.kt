@@ -3,12 +3,15 @@ package jp.shiguredo.sora.quickstart
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
@@ -25,13 +28,6 @@ import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.OnPermissionDenied
-import permissions.dispatcher.OnShowRationale
-import permissions.dispatcher.PermissionRequest
-import permissions.dispatcher.RuntimePermissions
-
-@RuntimePermissions
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -45,6 +41,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private val requiredPermissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO
+    )
+
+    private val permissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            val allGranted = requiredPermissions.all { perm -> result[perm] == true }
+            if (allGranted) {
+                disableStartButton()
+                start()
+            } else {
+                onCameraAndAudioDenied()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -52,10 +64,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.startButton.setOnClickListener {
-            disableStartButton()
-            startWithPermissionCheck()
-        }
+        binding.startButton.setOnClickListener { tryStartWithPermissions() }
         binding.stopButton.setOnClickListener {
             close()
         }
@@ -174,7 +183,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
     fun start() {
         Log.d(TAG, "start")
 
@@ -197,6 +205,28 @@ class MainActivity : AppCompatActivity() {
             listener = channelListener
         )
         mediaChannel!!.connect()
+    }
+
+    private fun tryStartWithPermissions() {
+        val allGranted = requiredPermissions.all { perm ->
+            ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
+        }
+        if (allGranted) {
+            disableStartButton()
+            start()
+            return
+        }
+
+        val shouldShow = requiredPermissions.any { perm -> shouldShowRequestPermissionRationale(perm) }
+        if (shouldShow) {
+            showRationaleDialog(
+                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
+            ) {
+                permissionsLauncher.launch(requiredPermissions)
+            }
+        } else {
+            permissionsLauncher.launch(requiredPermissions)
+        }
     }
 
     private fun close() {
@@ -234,22 +264,7 @@ class MainActivity : AppCompatActivity() {
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
-    // -- PermissionDispatcher --
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        onRequestPermissionsResult(requestCode, grantResults)
-    }
-
-    @OnShowRationale(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
-    fun showRationaleForCameraAndAudio(request: PermissionRequest) {
-        Log.d(TAG, "showRationaleForCameraAndAudio")
-        showRationaleDialog(
-            "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request
-        )
-    }
-
-    @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
+    // -- Permissions (Activity Result API) --
     fun onCameraAndAudioDenied() {
         Log.d(TAG, "onCameraAndAudioDenied")
         Snackbar.make(
@@ -261,10 +276,10 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showRationaleDialog(message: String, request: PermissionRequest) {
+    private fun showRationaleDialog(message: String, onProceed: () -> Unit) {
         AlertDialog.Builder(this)
-            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
-            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
+            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> onProceed() }
+            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> }
             .setCancelable(false)
             .setMessage(message)
             .show()
