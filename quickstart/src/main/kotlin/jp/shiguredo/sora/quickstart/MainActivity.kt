@@ -41,7 +41,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    // -- Permissions (Activity Result API) --
     private val requiredPermissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO
@@ -49,12 +48,13 @@ class MainActivity : AppCompatActivity() {
 
     private val permissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val allGranted = requiredPermissions.all { hasPermission(it) }
+            // 直近リクエストの結果で判定（null 安全）
+            val allGranted = result.values.all { it == true }
             if (allGranted) {
                 disableStartButton()
                 start()
             } else {
-                onCameraAndAudioDenied()
+                showPermissionError()
             }
         }
 
@@ -82,10 +82,12 @@ class MainActivity : AppCompatActivity() {
         binding.remoteRenderer.init(eglContext, null)
         disableStopButton()
 
-        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        oldAudioMode = audioManager!!.mode
-        Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
-        audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        audioManager?.let { am ->
+            oldAudioMode = am.mode
+            Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
+            am.mode = AudioManager.MODE_IN_COMMUNICATION
+        }
     }
 
     override fun onResume() {
@@ -95,9 +97,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // 異常終了やバックグラウンド遷移時のリーク抑止
-        close()
-        dispose()
+        // ここではリソースを解放しない（単なるバックグラウンド遷移に対応）
+        // アクティビティ終了時（Back/finish）のみ解放したい場合は下記を使用:
+        // if (isFinishing) { close(); dispose() }
     }
 
     // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
@@ -197,7 +199,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun start() {
+    private fun start() {
         Log.d(TAG, "start")
 
         val eglContext = egl?.eglBaseContext ?: run {
@@ -234,30 +236,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun tryStartWithPermissions() {
-        val missing = missingPermissions()
-        if (missing.isEmpty()) {
+        if (allPermissionsGranted()) {
             disableStartButton()
             start()
             return
         }
 
-        val shouldShow = missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
+        val missing = missingPermissionsArray()
+        val shouldShow = requiredPermissions.any { perm -> shouldShowRequestPermissionRationale(perm) }
         if (shouldShow) {
             showRationaleDialog(
                 "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
             ) {
-                permissionsLauncher.launch(missing.toTypedArray())
+                permissionsLauncher.launch(missing)
             }
         } else {
-            permissionsLauncher.launch(missing.toTypedArray())
+            permissionsLauncher.launch(missing)
         }
     }
 
     private fun hasPermission(perm: String): Boolean =
         ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
 
-    private fun missingPermissions(): List<String> =
-        requiredPermissions.filterNot { hasPermission(it) }
+    private fun allPermissionsGranted(): Boolean {
+        for (perm in requiredPermissions) {
+            if (!hasPermission(perm)) return false
+        }
+        return true
+    }
+
+    private fun missingPermissionsArray(): Array<String> =
+        requiredPermissions.filterNot { hasPermission(it) }.toTypedArray()
 
     private fun close() {
         // UI 更新系処理は runOnUiThread で行う
@@ -294,8 +303,8 @@ class MainActivity : AppCompatActivity() {
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
-    private fun onCameraAndAudioDenied() {
-        Log.d(TAG, "onCameraAndAudioDenied")
+    private fun showPermissionError() {
+        Log.d(TAG, "showPermissionError")
         Snackbar.make(
             binding.rootLayout,
             "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
