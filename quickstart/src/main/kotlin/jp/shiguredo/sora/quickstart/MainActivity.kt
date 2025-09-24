@@ -5,7 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,6 +29,7 @@ import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
+import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
@@ -218,7 +223,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val cap = CameraCapturerFactory.create(this)
+        val cap = createPreferredCapturer()
         if (cap == null) {
             Log.e(TAG, "Failed to create camera capturer")
             Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
@@ -244,6 +249,190 @@ class MainActivity : AppCompatActivity() {
             listener = channelListener
         )
         mediaChannel?.connect()
+    }
+
+    private fun createPreferredCapturer(): CameraVideoCapturer? {
+        logAvailableCameras()
+        val usbCapturer = createUsbCameraCapturer()
+        if (usbCapturer != null) {
+            Log.d(TAG, "Using external USB camera")
+            return usbCapturer
+        }
+        return CameraCapturerFactory.create(this)
+    }
+
+    private fun logAvailableCameras() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Log.d(TAG, "Camera enumeration requires API 21+")
+            return
+        }
+
+        val camera2Supported = Camera2Enumerator.isSupported(this)
+        Log.d(TAG, "Camera2Enumerator.isSupported: $camera2Supported")
+        if (!camera2Supported) {
+            Log.d(TAG, "Camera2 enumerator not supported on this device")
+            return
+        }
+
+        val manager = getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+        if (manager == null) {
+            Log.w(TAG, "CameraManager not available for logging")
+            return
+        }
+
+        val enumerator = Camera2Enumerator(this)
+        val deviceNames = enumerator.deviceNames.toList()
+
+        Log.d(TAG, "=== Camera2 enumerator device list ===")
+        deviceNames.forEach { name ->
+            val facing = when {
+                enumerator.isFrontFacing(name) -> "FRONT"
+                enumerator.isBackFacing(name) -> "BACK"
+                else -> "EXTERNAL/UNKNOWN"
+            }
+            Log.d(TAG, "Enumerator device: name=$name facing=$facing")
+        }
+
+        val cameraIds = try {
+            manager.cameraIdList
+        } catch (e: CameraAccessException) {
+            Log.e(TAG, "Failed to get cameraIdList", e)
+            return
+        }
+
+        Log.d(TAG, "=== CameraManager cameraId list ===")
+        cameraIds.forEach { cameraId ->
+            val characteristics = try {
+                manager.getCameraCharacteristics(cameraId)
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Failed to get characteristics for $cameraId", e)
+                return@forEach
+            } catch (e: CameraAccessException) {
+                Log.e(TAG, "Camera access error for $cameraId", e)
+                return@forEach
+            }
+
+            val facing = when (characteristics.get(CameraCharacteristics.LENS_FACING)) {
+                CameraCharacteristics.LENS_FACING_FRONT -> "FRONT"
+                CameraCharacteristics.LENS_FACING_BACK -> "BACK"
+                CameraCharacteristics.LENS_FACING_EXTERNAL -> "EXTERNAL"
+                else -> "UNKNOWN"
+            }
+
+            val hardwareLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+            val hardwareLevelLabel = when (hardwareLevel) {
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "LEGACY"
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "LIMITED"
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "FULL"
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "LEVEL_3"
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "EXTERNAL"
+                else -> "UNKNOWN"
+            }
+
+            val capabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+                ?.joinToString(prefix = "[", postfix = "]") { cap ->
+                    when (cap) {
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BACKWARD_COMPATIBLE -> "BACKWARD_COMPATIBLE"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_SENSOR -> "MANUAL_SENSOR"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MANUAL_POST_PROCESSING -> "MANUAL_POST_PROCESSING"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW -> "RAW"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT -> "DEPTH_OUTPUT"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_BURST_CAPTURE -> "BURST_CAPTURE"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO -> "CONSTRAINED_HIGH_SPEED_VIDEO"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_YUV_REPROCESSING -> "YUV_REPROCESSING"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_PRIVATE_REPROCESSING -> "PRIVATE_REPROCESSING"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MOTION_TRACKING -> "MOTION_TRACKING"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA -> "LOGICAL_MULTI_CAMERA"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_MONOCHROME -> "MONOCHROME"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_SECURE_IMAGE_DATA -> "SECURE_IMAGE_DATA"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_SYSTEM_CAMERA -> "SYSTEM_CAMERA"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_ULTRA_HIGH_RESOLUTION_SENSOR -> "ULTRA_HIGH_RESOLUTION_SENSOR"
+                        CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_REMOSAIC_REPROCESSING -> "REMOSAIC_REPROCESSING"
+                        else -> "UNKNOWN($cap)"
+                    }
+                } ?: "[]"
+
+            Log.d(
+                TAG,
+                "CameraManager device: id=$cameraId facing=$facing hardwareLevel=$hardwareLevelLabel capabilities=$capabilities"
+            )
+        }
+    }
+
+    private fun createUsbCameraCapturer(): CameraVideoCapturer? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Log.d(TAG, "USB camera not supported below API 21")
+            return null
+        }
+
+        if (!Camera2Enumerator.isSupported(this)) {
+            Log.d(TAG, "Camera2 is not supported; USB camera unavailable")
+            return null
+        }
+
+        val enumerator = Camera2Enumerator(this)
+        val deviceNames = enumerator.deviceNames.toList()
+        Log.d(TAG, "Camera2 device names: ${deviceNames.joinToString()}")
+
+        deviceNames.forEach { name ->
+            val front = enumerator.isFrontFacing(name)
+            val back = enumerator.isBackFacing(name)
+            Log.d(TAG, "Camera device name=$name, front=$front, back=$back")
+        }
+
+        val externalName = deviceNames.firstOrNull { name ->
+            !enumerator.isFrontFacing(name) && !enumerator.isBackFacing(name)
+        }
+
+        if (externalName != null) {
+            Log.d(TAG, "Using external camera from enumerator: $externalName")
+            return try {
+                enumerator.createCapturer(externalName, null)
+            } catch (e: RuntimeException) {
+                Log.e(TAG, "Failed to create external camera capturer", e)
+                null
+            }
+        }
+
+        val manager = getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+        if (manager == null) {
+            Log.w(TAG, "CameraManager not available")
+            return null
+        }
+
+        val cameraIds = try {
+            manager.cameraIdList
+        } catch (e: CameraAccessException) {
+            Log.e(TAG, "Failed to obtain camera id list", e)
+            return null
+        }
+
+        cameraIds.forEach { cameraId ->
+            val characteristics = try {
+                manager.getCameraCharacteristics(cameraId)
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Failed to get characteristics for $cameraId", e)
+                return@forEach
+            } catch (e: CameraAccessException) {
+                Log.e(TAG, "Camera access error for $cameraId", e)
+                return@forEach
+            }
+
+            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+            if (lensFacing == CameraCharacteristics.LENS_FACING_EXTERNAL) {
+                val deviceName = deviceNames.firstOrNull { it == cameraId } ?: cameraId
+                Log.d(TAG, "Using external camera from characteristics: id=$cameraId name=$deviceName")
+                val capturer = enumerator.createCapturer(deviceName, null)
+                if (capturer != null) {
+                    return capturer
+                } else {
+                    Log.w(TAG, "Failed to create capturer for external camera: $deviceName")
+                }
+            }
+        }
+
+        Log.d(TAG, "External USB camera not found")
+        return null
     }
 
     private fun restoreUiOnStartFailure() {
