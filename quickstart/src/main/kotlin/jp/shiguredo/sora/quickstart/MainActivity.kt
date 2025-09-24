@@ -3,12 +3,15 @@ package jp.shiguredo.sora.quickstart
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
@@ -25,13 +28,6 @@ import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.OnPermissionDenied
-import permissions.dispatcher.OnShowRationale
-import permissions.dispatcher.PermissionRequest
-import permissions.dispatcher.RuntimePermissions
-
-@RuntimePermissions
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -45,6 +41,23 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private val requiredPermissions = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO
+    )
+
+    private val permissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            // 直近リクエストの結果で判定
+            val allGranted = result.values.all { it == true }
+            if (allGranted) {
+                disableStartButton()
+                start()
+            } else {
+                showPermissionError()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -52,24 +65,29 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.startButton.setOnClickListener {
-            disableStartButton()
-            startWithPermissionCheck()
-        }
+        binding.startButton.setOnClickListener { tryStartWithPermissions() }
         binding.stopButton.setOnClickListener {
             close()
         }
 
         egl = EglBase.create()
-        val eglContext = egl!!.eglBaseContext
+        val eglContext = egl?.eglBaseContext
+        if (eglContext == null) {
+            Log.e(TAG, "EGL context initialization failed")
+            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            finish()
+            return
+        }
         binding.localRenderer.init(eglContext, null)
         binding.remoteRenderer.init(eglContext, null)
         disableStopButton()
 
-        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        oldAudioMode = audioManager!!.mode
-        Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
-        audioManager?.mode = AudioManager.MODE_IN_COMMUNICATION
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        audioManager?.let { am ->
+            oldAudioMode = am.mode
+            Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
+            am.mode = AudioManager.MODE_IN_COMMUNICATION
+        }
     }
 
     override fun onResume() {
@@ -77,13 +95,29 @@ class MainActivity : AppCompatActivity() {
         this.volumeControlStream = AudioManager.STREAM_VOICE_CALL
     }
 
-    // AudioManager.MODE_INVALID が使われているため lint でエラーが出るので一時的に抑制しておく
+    override fun onStop() {
+        super.onStop()
+        // ここではリソースを解放しない（単なるバックグラウンド遷移に対応）
+        // アクティビティ終了時（Back/finish）のみ解放したい場合は下記を使用:
+        // if (isFinishing) { close(); dispose() }
+    }
+
     @SuppressLint("WrongConstant")
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         super.onDestroy()
-        Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
-        audioManager?.run { mode = oldAudioMode }
+        // AudioManager のモードを起動前の状態に戻す。
+        // oldAudioMode は初期値として MODE_INVALID を使っており、
+        // これは「復元不要」を示すセンチネル。MODE_INVALID のまま代入すると
+        // Lint の WrongConstant が発生し得るため、チェックしてから復元する。
+        audioManager?.let { am ->
+            if (oldAudioMode != AudioManager.MODE_INVALID) {
+                Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
+                am.mode = oldAudioMode
+            } else {
+                Log.d(TAG, "AudioManager mode unchanged (oldAudioMode is MODE_INVALID)")
+            }
+        }
 
         close()
         dispose()
@@ -174,18 +208,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @NeedsPermission(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
-    fun start() {
+    private fun start() {
         Log.d(TAG, "start")
 
-        capturer = CameraCapturerFactory.create(this)
+        val eglContext = egl?.eglBaseContext ?: run {
+            Log.e(TAG, "EGL is not initialized")
+            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            restoreUiOnStartFailure()
+            return
+        }
+
+        val cap = CameraCapturerFactory.create(this)
+        if (cap == null) {
+            Log.e(TAG, "Failed to create camera capturer")
+            Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+            restoreUiOnStartFailure()
+            return
+        }
+        capturer = cap
 
         val option = SoraMediaOption().apply {
             enableAudioDownstream()
-            enableVideoDownstream(egl!!.eglBaseContext)
+            enableVideoDownstream(eglContext)
 
             enableAudioUpstream()
-            enableVideoUpstream(capturer!!, egl!!.eglBaseContext)
+            enableVideoUpstream(cap, eglContext)
         }
 
         mediaChannel = SoraMediaChannel(
@@ -196,7 +243,56 @@ class MainActivity : AppCompatActivity() {
             mediaOption = option,
             listener = channelListener
         )
-        mediaChannel!!.connect()
+        mediaChannel?.connect()
+    }
+
+    private fun restoreUiOnStartFailure() {
+        runOnUiThread {
+            // 開始失敗時は開始前の状態へ戻す（Start有効・Stop無効）
+            enableStartButton()
+        }
+    }
+
+    private fun enableStartButton() {
+        binding.stopButton.isEnabled = false
+        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.startButton.isEnabled = true
+        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+    }
+
+    private fun tryStartWithPermissions() {
+        val check = evaluatePermissions()
+        if (check.allGranted) {
+            disableStartButton()
+            start()
+            return
+        }
+
+        val shouldShow = check.missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
+        if (shouldShow) {
+            showRationaleDialog(
+                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
+            ) {
+                permissionsLauncher.launch(check.missing)
+            }
+        } else {
+            permissionsLauncher.launch(check.missing)
+        }
+    }
+
+    private fun hasPermission(perm: String): Boolean =
+        ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
+
+    private data class PermissionCheck(
+        val allGranted: Boolean,
+        val missing: Array<String>
+    )
+
+    private fun evaluatePermissions(): PermissionCheck {
+        val missing = requiredPermissions
+            .filterNot(::hasPermission)
+            .toTypedArray()
+        return PermissionCheck(missing.isEmpty(), missing)
     }
 
     private fun close() {
@@ -234,24 +330,8 @@ class MainActivity : AppCompatActivity() {
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
-    // -- PermissionDispatcher --
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        onRequestPermissionsResult(requestCode, grantResults)
-    }
-
-    @OnShowRationale(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
-    fun showRationaleForCameraAndAudio(request: PermissionRequest) {
-        Log.d(TAG, "showRationaleForCameraAndAudio")
-        showRationaleDialog(
-            "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です", request
-        )
-    }
-
-    @OnPermissionDenied(value = [Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO])
-    fun onCameraAndAudioDenied() {
-        Log.d(TAG, "onCameraAndAudioDenied")
+    private fun showPermissionError() {
+        Log.d(TAG, "showPermissionError")
         Snackbar.make(
             binding.rootLayout,
             "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
@@ -261,10 +341,10 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showRationaleDialog(message: String, request: PermissionRequest) {
+    private fun showRationaleDialog(message: String, onProceed: () -> Unit) {
         AlertDialog.Builder(this)
-            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> request.proceed() }
-            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> request.cancel() }
+            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> onProceed() }
+            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> }
             .setCancelable(false)
             .setMessage(message)
             .show()

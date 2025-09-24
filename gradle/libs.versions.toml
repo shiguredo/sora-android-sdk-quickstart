@@ -1,7 +1,7 @@
 [versions]
 # Build tools
 android-gradle-plugin = "8.11.1"
-kotlin = "1.9.25"
+kotlin = "2.0.20"
 ktlint-gradle = "11.3.1"
 versions-plugin = "0.46.0"
 android-maven-plugin = "2.1"
@@ -22,7 +22,6 @@ sora-android-sdk = "2025.3.0-canary.0"
 gson = "2.13.1"
 androidx-appcompat = "1.7.0"
 material = "1.12.0"
-permissions-dispatcher = "4.9.2"
 
 [libraries]
 # Build tools
@@ -43,15 +42,11 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
-# Permissions
-permissions-dispatcher = { module = "com.github.permissions-dispatcher:permissionsdispatcher", version.ref = "permissions-dispatcher" }
-permissions-dispatcher-processor = { module = "com.github.permissions-dispatcher:permissionsdispatcher-processor", version.ref = "permissions-dispatcher" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 android-maven = { id = "com.github.dcendents.android-maven", version.ref = "android-maven-plugin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versions-plugin" }
