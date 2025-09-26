@@ -361,12 +361,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
-        Snackbar.make(
-            binding.rootLayout,
-            "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
-            Snackbar.LENGTH_LONG,
-        )
-            .setAction("OK") { }
+        Snackbar
+            .make(
+                binding.rootLayout,
+                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
+                Snackbar.LENGTH_LONG,
+            ).setAction("OK") { }
             .show()
     }
 
@@ -374,7 +374,8 @@ class MainActivity : AppCompatActivity() {
         message: String,
         onProceed: () -> Unit,
     ) {
-        AlertDialog.Builder(this)
+        AlertDialog
+            .Builder(this)
             .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> onProceed() }
             .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> }
             .setCancelable(false)

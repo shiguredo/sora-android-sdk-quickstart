@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -7,12 +8,21 @@ plugins {
 }
 
 android {
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
 
     defaultConfig {
         applicationId = "jp.shiguredo.sora.quickstart"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.targetSdk
+                .get()
+                .toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -62,7 +72,7 @@ android {
 
 ktlint {
     // 設定フェーズでは動的解決や Version Catalog を使えないため固定
-    version.set("1.2.1")
+    version.set("1.7.1")
     android.set(false)
     outputToConsole.set(true)
     reporters {
@@ -96,7 +106,7 @@ configurations.all {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     finalizedBy("ktlintFormat")
-    kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
+    compilerOptions {
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
     }
 }
