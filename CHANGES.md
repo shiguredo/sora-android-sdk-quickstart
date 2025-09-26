@@ -11,6 +11,8 @@
 
 ## 2025.3
 
+- [UPDATE] 接続していない状態では EglRenderer の統計ログが出力されないように修正した
+  - @t-miya
 - [UPDATE] デバイス権限処理を PermissionDispacher から Activity Result API へ移行
   - kapt が Kotlin 2 に対応していないため警告が出て 1.9.0 にフォールバックされる
   - kapt を ksp へ移行しようとすると PermissionDispatcher が対応していないためビルドエラーとなる
