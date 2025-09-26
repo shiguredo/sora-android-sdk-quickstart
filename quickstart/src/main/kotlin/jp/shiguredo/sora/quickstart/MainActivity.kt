@@ -121,7 +121,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        close()
         dispose()
     }
 
@@ -332,8 +331,8 @@ class MainActivity : AppCompatActivity() {
         // UI 更新系処理は runOnUiThread で行う
         runOnUiThread {
             disableStopButton()
-            releaseRenderers()
         }
+        releaseRenderers()
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
@@ -341,11 +340,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dispose() {
-        capturer?.stopCapture()
-        capturer = null
-
-        releaseRenderers()
-
+        close()
         egl?.release()
         egl = null
     }
