@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
 
     private var audioManager: AudioManager? = null
 
+    private var renderersInitialized = false
+
     private lateinit var binding: ActivityMainBinding
 
     private val requiredPermissions =
@@ -79,8 +81,7 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-        binding.localRenderer.init(eglContext, null)
-        binding.remoteRenderer.init(eglContext, null)
+        // レンダラーの初期化は接続開始直前に実行する
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -245,11 +246,14 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
+        ensureRenderersInitialized(eglContext)
+
         val cap = CameraCapturerFactory.create(this)
         if (cap == null) {
             Log.e(TAG, "Failed to create camera capturer")
             Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
             restoreUiOnStartFailure()
+            releaseRenderers()
             return
         }
         capturer = cap
@@ -328,18 +332,19 @@ class MainActivity : AppCompatActivity() {
         // UI 更新系処理は runOnUiThread で行う
         runOnUiThread {
             disableStopButton()
+            releaseRenderers()
         }
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
+        capturer = null
     }
 
     private fun dispose() {
         capturer?.stopCapture()
         capturer = null
 
-        binding.localRenderer.release()
-        binding.remoteRenderer.release()
+        releaseRenderers()
 
         egl?.release()
         egl = null
@@ -357,6 +362,24 @@ class MainActivity : AppCompatActivity() {
         binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
         binding.startButton.isEnabled = true
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+    }
+
+    private fun ensureRenderersInitialized(eglContext: EglBase.Context) {
+        if (renderersInitialized) {
+            return
+        }
+        binding.localRenderer.init(eglContext, null)
+        binding.remoteRenderer.init(eglContext, null)
+        renderersInitialized = true
+    }
+
+    private fun releaseRenderers() {
+        if (!renderersInitialized) {
+            return
+        }
+        binding.localRenderer.release()
+        binding.remoteRenderer.release()
+        renderersInitialized = false
     }
 
     private fun showPermissionError() {
