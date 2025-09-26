@@ -40,7 +40,6 @@ class MainActivity : AppCompatActivity() {
     private var audioManager: AudioManager? = null
 
     private var renderersInitialized = false
-    private var sessionClosed = true
 
     private lateinit var binding: ActivityMainBinding
 
@@ -82,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-        // レンダラーの初期化は start() 内の接続開始処理で行う
+        // レンダラーの初期化は start() 内の ensureRenderersInitialized() で実行する
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -252,33 +251,35 @@ class MainActivity : AppCompatActivity() {
         if (cap == null) {
             Log.e(TAG, "Failed to create camera capturer")
             Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-            restoreUiOnStartFailure()
-            releaseRenderers()
+            handleStartFailure()
             return
         }
         capturer = cap
 
-        sessionClosed = false
+        runCatching {
+            val option =
+                SoraMediaOption().apply {
+                    enableAudioDownstream()
+                    enableVideoDownstream(eglContext)
 
-        val option =
-            SoraMediaOption().apply {
-                enableAudioDownstream()
-                enableVideoDownstream(eglContext)
+                    enableAudioUpstream()
+                    enableVideoUpstream(cap, eglContext)
+                }
 
-                enableAudioUpstream()
-                enableVideoUpstream(cap, eglContext)
-            }
-
-        mediaChannel =
-            SoraMediaChannel(
-                context = this,
-                signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
-                channelId = BuildConfig.CHANNEL_ID,
-                signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
-                mediaOption = option,
-                listener = channelListener,
-            )
-        mediaChannel?.connect()
+            mediaChannel =
+                SoraMediaChannel(
+                    context = this,
+                    signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
+                    channelId = BuildConfig.CHANNEL_ID,
+                    signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+                    mediaOption = option,
+                    listener = channelListener,
+                )
+            mediaChannel?.connect()
+        }.onFailure { throwable ->
+            Log.e(TAG, "Failed to start media channel", throwable)
+            handleStartFailure()
+        }
     }
 
     private fun restoreUiOnStartFailure() {
@@ -286,6 +287,13 @@ class MainActivity : AppCompatActivity() {
             // 開始失敗時は開始前の状態へ戻す（Start有効・Stop無効）
             enableStartButton()
         }
+    }
+
+    private fun handleStartFailure() {
+        capturer?.stopCapture()
+        capturer = null
+        releaseRenderers()
+        restoreUiOnStartFailure()
     }
 
     private fun enableStartButton() {
@@ -331,16 +339,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun close() {
-        if (sessionClosed) {
+        if (isSessionReleased()) {
             return
         }
-        sessionClosed = true
 
         // UI 更新系処理は runOnUiThread で行う
         runOnUiThread {
             disableStopButton()
-            releaseRenderers()
         }
+        releaseRenderers()
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
@@ -348,7 +355,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dispose() {
-        if (!sessionClosed) {
+        if (!isSessionReleased()) {
             close()
         }
         egl?.release()
@@ -390,6 +397,8 @@ class MainActivity : AppCompatActivity() {
         binding.remoteRenderer.release()
         renderersInitialized = false
     }
+
+    private fun isSessionReleased(): Boolean = mediaChannel == null && capturer == null && !renderersInitialized
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
