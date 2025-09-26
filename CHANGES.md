@@ -12,7 +12,8 @@
 ## 2025.3
 
 - [UPDATE] SurfaceViewRenderer の初期化タイミングを接続開始時に遅延するように修正した
-  - 接続前に EglRenderer 統計ログが出力され続けていたため
+  - 接続していない時でも EglRenderer 統計ログが出力され続けていたため
+    - SurfaceViewRenderer 初期化によって内部の EglRenderer も初期化されログ出力を開始する
   - @t-miya
 - [UPDATE] デバイス権限処理を PermissionDispacher から Activity Result API へ移行
   - kapt が Kotlin 2 に対応していないため警告が出て 1.9.0 にフォールバックされる

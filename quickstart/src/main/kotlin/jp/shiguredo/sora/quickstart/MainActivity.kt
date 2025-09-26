@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var audioManager: AudioManager? = null
 
     private var renderersInitialized = false
+    private var sessionClosed = true
 
     private lateinit var binding: ActivityMainBinding
 
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-        // レンダラーの初期化は接続開始直前に実行する
+        // レンダラーの初期化は start() 内の接続開始処理で行う
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -257,6 +258,8 @@ class MainActivity : AppCompatActivity() {
         }
         capturer = cap
 
+        sessionClosed = false
+
         val option =
             SoraMediaOption().apply {
                 enableAudioDownstream()
@@ -328,11 +331,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun close() {
+        if (sessionClosed) {
+            return
+        }
+        sessionClosed = true
+
         // UI 更新系処理は runOnUiThread で行う
         runOnUiThread {
             disableStopButton()
+            releaseRenderers()
         }
-        releaseRenderers()
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
@@ -340,7 +348,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dispose() {
-        close()
+        if (!sessionClosed) {
+            close()
+        }
         egl?.release()
         egl = null
     }
@@ -370,6 +380,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun releaseRenderers() {
         if (!renderersInitialized) {
+            return
+        }
+        if (!this::binding.isInitialized) {
+            renderersInitialized = false
             return
         }
         binding.localRenderer.release()
