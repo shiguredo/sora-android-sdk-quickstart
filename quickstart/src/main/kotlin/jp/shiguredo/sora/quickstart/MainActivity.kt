@@ -28,8 +28,8 @@ import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
-class MainActivity : AppCompatActivity() {
 
+class MainActivity : AppCompatActivity() {
     companion object {
         private val TAG = MainActivity::class.simpleName
     }
@@ -41,10 +41,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private val requiredPermissions = arrayOf(
-        Manifest.permission.CAMERA,
-        Manifest.permission.RECORD_AUDIO
-    )
+    private val requiredPermissions =
+        arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+        )
 
     private val permissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -126,97 +127,123 @@ class MainActivity : AppCompatActivity() {
     private var mediaChannel: SoraMediaChannel? = null
     private var capturer: CameraVideoCapturer? = null
 
-    private val channelListener = object : SoraMediaChannel.Listener {
-
-        override fun onConnect(mediaChannel: SoraMediaChannel) {
-            Log.d(TAG, "onConnect")
-        }
-
-        override fun onClose(mediaChannel: SoraMediaChannel, closeEvent: SoraCloseEvent) {
-            when {
-                closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
-                else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
+    private val channelListener =
+        object : SoraMediaChannel.Listener {
+            override fun onConnect(mediaChannel: SoraMediaChannel) {
+                Log.d(TAG, "onConnect")
             }
-            close()
-        }
 
-        override fun onError(mediaChannel: SoraMediaChannel, reason: SoraErrorReason, message: String) {
-            Log.d(TAG, "onError [$reason]: $message")
-            close()
-        }
+            override fun onClose(
+                mediaChannel: SoraMediaChannel,
+                closeEvent: SoraCloseEvent,
+            ) {
+                when {
+                    closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
+                    else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
+                }
+                close()
+            }
 
-        override fun onWarning(mediaChannel: SoraMediaChannel, reason: SoraErrorReason) {
-            Log.d(TAG, "onWarning [$reason]")
-        }
+            override fun onError(
+                mediaChannel: SoraMediaChannel,
+                reason: SoraErrorReason,
+                message: String,
+            ) {
+                Log.d(TAG, "onError [$reason]: $message")
+                close()
+            }
 
-        override fun onAddRemoteStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
-            Log.d(TAG, "onAddRemoteStream")
-            runOnUiThread {
-                if (ms.videoTracks.size > 0) {
-                    val track = ms.videoTracks[0]
-                    track.setEnabled(true)
-                    track.addSink(this@MainActivity.binding.remoteRenderer)
+            override fun onWarning(
+                mediaChannel: SoraMediaChannel,
+                reason: SoraErrorReason,
+            ) {
+                Log.d(TAG, "onWarning [$reason]")
+            }
+
+            override fun onAddRemoteStream(
+                mediaChannel: SoraMediaChannel,
+                ms: MediaStream,
+            ) {
+                Log.d(TAG, "onAddRemoteStream")
+                runOnUiThread {
+                    if (ms.videoTracks.size > 0) {
+                        val track = ms.videoTracks[0]
+                        track.setEnabled(true)
+                        track.addSink(this@MainActivity.binding.remoteRenderer)
+                    }
                 }
             }
-        }
 
-        override fun onRemoveRemoteStream(mediaChannel: SoraMediaChannel, label: String) {
-            Log.d(TAG, "onRemoveRemoteStream")
-            runOnUiThread {
-                binding.remoteRenderer.clearImage()
-            }
-        }
-
-        override fun onAddLocalStream(mediaChannel: SoraMediaChannel, ms: MediaStream) {
-            Log.d(TAG, "onAddLocalStream")
-            runOnUiThread {
-                if (ms.videoTracks.size > 0) {
-                    val track = ms.videoTracks[0]
-                    track.setEnabled(true)
-                    track.addSink(this@MainActivity.binding.localRenderer)
-                    capturer?.startCapture(400, 400, 30)
+            override fun onRemoveRemoteStream(
+                mediaChannel: SoraMediaChannel,
+                label: String,
+            ) {
+                Log.d(TAG, "onRemoveRemoteStream")
+                runOnUiThread {
+                    binding.remoteRenderer.clearImage()
                 }
             }
-        }
 
-        override fun onPushMessage(mediaChannel: SoraMediaChannel, push: PushMessage) {
-            Log.d(TAG, "onPushMessage: push=$push")
-            val data = push.data
-            if (data is Map<*, *>) {
-                data.forEach { (key, value) ->
-                    Log.d(TAG, "received push data: $key=$value")
+            override fun onAddLocalStream(
+                mediaChannel: SoraMediaChannel,
+                ms: MediaStream,
+            ) {
+                Log.d(TAG, "onAddLocalStream")
+                runOnUiThread {
+                    if (ms.videoTracks.size > 0) {
+                        val track = ms.videoTracks[0]
+                        track.setEnabled(true)
+                        track.addSink(this@MainActivity.binding.localRenderer)
+                        capturer?.startCapture(400, 400, 30)
+                    }
                 }
             }
-        }
 
-        override fun onAttendeesCountUpdated(
-            mediaChannel: SoraMediaChannel,
-            attendees: ChannelAttendeesCount
-        ) {
-            Log.d(TAG, "onAttendeesCountUpdated: $attendees")
-        }
+            override fun onPushMessage(
+                mediaChannel: SoraMediaChannel,
+                push: PushMessage,
+            ) {
+                Log.d(TAG, "onPushMessage: push=$push")
+                val data = push.data
+                if (data is Map<*, *>) {
+                    data.forEach { (key, value) ->
+                        Log.d(TAG, "received push data: $key=$value")
+                    }
+                }
+            }
 
-        override fun onOfferMessage(mediaChannel: SoraMediaChannel, offer: OfferMessage) {
-            Log.d(TAG, "onOfferMessage: offer=$offer")
-        }
+            override fun onAttendeesCountUpdated(
+                mediaChannel: SoraMediaChannel,
+                attendees: ChannelAttendeesCount,
+            ) {
+                Log.d(TAG, "onAttendeesCountUpdated: $attendees")
+            }
 
-        override fun onNotificationMessage(
-            mediaChannel: SoraMediaChannel,
-            notification: NotificationMessage
-        ) {
-            Log.d(TAG, "onNotificationMessage: notification=$notification")
+            override fun onOfferMessage(
+                mediaChannel: SoraMediaChannel,
+                offer: OfferMessage,
+            ) {
+                Log.d(TAG, "onOfferMessage: offer=$offer")
+            }
+
+            override fun onNotificationMessage(
+                mediaChannel: SoraMediaChannel,
+                notification: NotificationMessage,
+            ) {
+                Log.d(TAG, "onNotificationMessage: notification=$notification")
+            }
         }
-    }
 
     private fun start() {
         Log.d(TAG, "start")
 
-        val eglContext = egl?.eglBaseContext ?: run {
-            Log.e(TAG, "EGL is not initialized")
-            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-            restoreUiOnStartFailure()
-            return
-        }
+        val eglContext =
+            egl?.eglBaseContext ?: run {
+                Log.e(TAG, "EGL is not initialized")
+                Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+                restoreUiOnStartFailure()
+                return
+            }
 
         val cap = CameraCapturerFactory.create(this)
         if (cap == null) {
@@ -227,22 +254,24 @@ class MainActivity : AppCompatActivity() {
         }
         capturer = cap
 
-        val option = SoraMediaOption().apply {
-            enableAudioDownstream()
-            enableVideoDownstream(eglContext)
+        val option =
+            SoraMediaOption().apply {
+                enableAudioDownstream()
+                enableVideoDownstream(eglContext)
 
-            enableAudioUpstream()
-            enableVideoUpstream(cap, eglContext)
-        }
+                enableAudioUpstream()
+                enableVideoUpstream(cap, eglContext)
+            }
 
-        mediaChannel = SoraMediaChannel(
-            context = this,
-            signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
-            channelId = BuildConfig.CHANNEL_ID,
-            signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
-            mediaOption = option,
-            listener = channelListener
-        )
+        mediaChannel =
+            SoraMediaChannel(
+                context = this,
+                signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
+                channelId = BuildConfig.CHANNEL_ID,
+                signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+                mediaOption = option,
+                listener = channelListener,
+            )
         mediaChannel?.connect()
     }
 
@@ -271,7 +300,7 @@ class MainActivity : AppCompatActivity() {
         val shouldShow = check.missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
         if (shouldShow) {
             showRationaleDialog(
-                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です"
+                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です",
             ) {
                 permissionsLauncher.launch(check.missing)
             }
@@ -280,18 +309,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun hasPermission(perm: String): Boolean =
-        ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
+    private fun hasPermission(perm: String): Boolean = ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
 
     private data class PermissionCheck(
         val allGranted: Boolean,
-        val missing: Array<String>
+        val missing: Array<String>,
     )
 
     private fun evaluatePermissions(): PermissionCheck {
-        val missing = requiredPermissions
-            .filterNot(::hasPermission)
-            .toTypedArray()
+        val missing =
+            requiredPermissions
+                .filterNot(::hasPermission)
+                .toTypedArray()
         return PermissionCheck(missing.isEmpty(), missing)
     }
 
@@ -332,17 +361,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
-        Snackbar.make(
-            binding.rootLayout,
-            "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
-            Snackbar.LENGTH_LONG
-        )
-            .setAction("OK") { }
+        Snackbar
+            .make(
+                binding.rootLayout,
+                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
+                Snackbar.LENGTH_LONG,
+            ).setAction("OK") { }
             .show()
     }
 
-    private fun showRationaleDialog(message: String, onProceed: () -> Unit) {
-        AlertDialog.Builder(this)
+    private fun showRationaleDialog(
+        message: String,
+        onProceed: () -> Unit,
+    ) {
+        AlertDialog
+            .Builder(this)
             .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> onProceed() }
             .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> }
             .setCancelable(false)
