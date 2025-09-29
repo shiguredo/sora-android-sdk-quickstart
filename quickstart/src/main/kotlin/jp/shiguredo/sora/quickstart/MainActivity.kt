@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
 
     private var audioManager: AudioManager? = null
 
+    private var renderersInitialized = false
+
     private lateinit var binding: ActivityMainBinding
 
     private val requiredPermissions =
@@ -79,8 +81,7 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
-        binding.localRenderer.init(eglContext, null)
-        binding.remoteRenderer.init(eglContext, null)
+        // レンダラーの初期化は start() 内の ensureRenderersInitialized() で実行する
         disableStopButton()
 
         audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -120,7 +121,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        close()
         dispose()
     }
 
@@ -245,34 +245,41 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
+        ensureRenderersInitialized(eglContext)
+
         val cap = CameraCapturerFactory.create(this)
         if (cap == null) {
             Log.e(TAG, "Failed to create camera capturer")
             Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-            restoreUiOnStartFailure()
+            handleStartFailure()
             return
         }
         capturer = cap
 
-        val option =
-            SoraMediaOption().apply {
-                enableAudioDownstream()
-                enableVideoDownstream(eglContext)
+        runCatching {
+            val option =
+                SoraMediaOption().apply {
+                    enableAudioDownstream()
+                    enableVideoDownstream(eglContext)
 
-                enableAudioUpstream()
-                enableVideoUpstream(cap, eglContext)
-            }
+                    enableAudioUpstream()
+                    enableVideoUpstream(cap, eglContext)
+                }
 
-        mediaChannel =
-            SoraMediaChannel(
-                context = this,
-                signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
-                channelId = BuildConfig.CHANNEL_ID,
-                signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
-                mediaOption = option,
-                listener = channelListener,
-            )
-        mediaChannel?.connect()
+            mediaChannel =
+                SoraMediaChannel(
+                    context = this,
+                    signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
+                    channelId = BuildConfig.CHANNEL_ID,
+                    signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
+                    mediaOption = option,
+                    listener = channelListener,
+                )
+            mediaChannel?.connect()
+        }.onFailure { throwable ->
+            Log.e(TAG, "Failed to start media channel", throwable)
+            handleStartFailure()
+        }
     }
 
     private fun restoreUiOnStartFailure() {
@@ -280,6 +287,13 @@ class MainActivity : AppCompatActivity() {
             // 開始失敗時は開始前の状態へ戻す（Start有効・Stop無効）
             enableStartButton()
         }
+    }
+
+    private fun handleStartFailure() {
+        capturer?.stopCapture()
+        capturer = null
+        releaseRenderers()
+        restoreUiOnStartFailure()
     }
 
     private fun enableStartButton() {
@@ -325,22 +339,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun close() {
+        if (isSessionReleased()) {
+            return
+        }
+
         // UI 更新系処理は runOnUiThread で行う
         runOnUiThread {
             disableStopButton()
         }
+        releaseRenderers()
         mediaChannel?.disconnect()
         mediaChannel = null
         capturer?.stopCapture()
+        capturer = null
     }
 
     private fun dispose() {
-        capturer?.stopCapture()
-        capturer = null
-
-        binding.localRenderer.release()
-        binding.remoteRenderer.release()
-
+        if (!isSessionReleased()) {
+            close()
+        }
         egl?.release()
         egl = null
     }
@@ -358,6 +375,30 @@ class MainActivity : AppCompatActivity() {
         binding.startButton.isEnabled = true
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
+
+    private fun ensureRenderersInitialized(eglContext: EglBase.Context) {
+        if (renderersInitialized) {
+            return
+        }
+        binding.localRenderer.init(eglContext, null)
+        binding.remoteRenderer.init(eglContext, null)
+        renderersInitialized = true
+    }
+
+    private fun releaseRenderers() {
+        if (!renderersInitialized) {
+            return
+        }
+        if (!this::binding.isInitialized) {
+            renderersInitialized = false
+            return
+        }
+        binding.localRenderer.release()
+        binding.remoteRenderer.release()
+        renderersInitialized = false
+    }
+
+    private fun isSessionReleased(): Boolean = mediaChannel == null && capturer == null && !renderersInitialized
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
