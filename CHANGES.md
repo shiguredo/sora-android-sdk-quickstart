@@ -39,6 +39,7 @@
   - @miosakuma
 - [UPDATE] システム条件を更新する
   - Android Studio 2025.2.1 以降
+  - @zztkm
 - [ADD] ローカルの sora-android-sdk を Composite build で取り込めるようにする
   - gradle.properties.example にローカルの sora-android-sdk のソースコードのパスを指定する `soraSdkDirPath` キーを追加
   - settings.gradle.kts に `soraSdkDirPath` のパスを Composite build で取り込む処理を追加
