@@ -260,6 +260,7 @@ class MainActivity : AppCompatActivity() {
                     enableVideoDownstream(eglContext)
 
                     enableAudioUpstream()
+                    // CameraVideoCapturer は SDK 内部で生成・制御される
                     enableVideoUpstream(eglContext, cameraConfig)
                 }
 
