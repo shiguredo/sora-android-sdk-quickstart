@@ -9,7 +9,10 @@
 - FIX
   - バグ修正
 
-## 2025.4
+## 2026.1
+
+- [UPDATE] Sora Android SDK を 2026.1.0 に上げる
+  - @zztkm
 
 ## sora-andoroid-sdk-2025.3.0
 
