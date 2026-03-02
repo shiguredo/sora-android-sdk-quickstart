@@ -11,6 +11,12 @@
 
 ## 2026.1
 
+**リリース日**: 2026-03-02
+
+- [UPDATE] システム条件を更新する
+  - Android Studio 2025.2.1 以降
+  - WebRTC SFU Sora 2025.2.0 以降
+  - @zztkm
 - [UPDATE] Sora Android SDK を 2026.1.0 に上げる
   - @zztkm
 
