@@ -9,6 +9,8 @@
 - FIX
   - バグ修正
 
+## 2026.2
+
 ## 2026.1
 
 - [UPDATE] Sora Android SDK を 2026.1.0 に上げる
