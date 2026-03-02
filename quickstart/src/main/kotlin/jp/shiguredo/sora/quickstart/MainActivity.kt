@@ -15,17 +15,16 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
-import jp.shiguredo.sora.sdk.camera.CameraCapturerFactory
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
+import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
 
@@ -125,7 +124,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var mediaChannel: SoraMediaChannel? = null
-    private var capturer: CameraVideoCapturer? = null
+    private var cameraConfig =
+        SoraMediaOption.SoraCameraConfig(
+            captureType = SoraVideoOption.CaptureType.DEVICE_CAMERA,
+            width = 400,
+            height = 400,
+            frameRate = 30,
+            frontFacingFirst = true,
+            initialVideoHardMute = false,
+        )
 
     private val channelListener =
         object : SoraMediaChannel.Listener {
@@ -194,7 +201,6 @@ class MainActivity : AppCompatActivity() {
                         val track = ms.videoTracks[0]
                         track.setEnabled(true)
                         track.addSink(this@MainActivity.binding.localRenderer)
-                        capturer?.startCapture(400, 400, 30)
                     }
                 }
             }
@@ -247,15 +253,6 @@ class MainActivity : AppCompatActivity() {
 
         ensureRenderersInitialized(eglContext)
 
-        val cap = CameraCapturerFactory.create(this)
-        if (cap == null) {
-            Log.e(TAG, "Failed to create camera capturer")
-            Snackbar.make(binding.rootLayout, "カメラの初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-            handleStartFailure()
-            return
-        }
-        capturer = cap
-
         runCatching {
             val option =
                 SoraMediaOption().apply {
@@ -263,7 +260,8 @@ class MainActivity : AppCompatActivity() {
                     enableVideoDownstream(eglContext)
 
                     enableAudioUpstream()
-                    enableVideoUpstream(cap, eglContext)
+                    // CameraVideoCapturer は SDK 内部で生成・制御される
+                    enableVideoUpstream(eglContext, cameraConfig)
                 }
 
             mediaChannel =
@@ -290,8 +288,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleStartFailure() {
-        capturer?.stopCapture()
-        capturer = null
         releaseRenderers()
         restoreUiOnStartFailure()
     }
@@ -350,8 +346,6 @@ class MainActivity : AppCompatActivity() {
         releaseRenderers()
         mediaChannel?.disconnect()
         mediaChannel = null
-        capturer?.stopCapture()
-        capturer = null
     }
 
     private fun dispose() {
@@ -398,7 +392,7 @@ class MainActivity : AppCompatActivity() {
         renderersInitialized = false
     }
 
-    private fun isSessionReleased(): Boolean = mediaChannel == null && capturer == null && !renderersInitialized
+    private fun isSessionReleased(): Boolean = mediaChannel == null && !renderersInitialized
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
