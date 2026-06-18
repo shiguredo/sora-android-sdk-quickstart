@@ -19,6 +19,7 @@
 
 - [UPDATE] GitHub Actions の build ワークフローの Java を更新する
   - Distribution を Temurin に変更する
+    - sora-android-sdk で利用している Distribution に合わせる
   - Java バージョンを 21 に上げる
   - @t-miya
 
