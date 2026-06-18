@@ -11,6 +11,17 @@
 
 ## 2026.2
 
+- [UPDATE] Sora Android SDK を 2026.2.0-canary.1 に上げる
+  - libwebrtc バージョンを m150 に上げる
+  - @t-miya
+
+### misc
+
+- [UPDATE] GitHub Actions の build ワークフローの Java を更新する
+  - Distribution を Temurin に変更する
+  - Java バージョンを 21 に上げる
+  - @t-miya
+
 ## 2026.1
 
 - [UPDATE] Sora Android SDK を 2026.1.0 に上げる
