@@ -27,6 +27,7 @@ import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
+import org.webrtc.VideoCapturer
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -48,13 +49,17 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.RECORD_AUDIO,
         )
 
+    // 権限取得後にどの開始処理を実行するか保持する
+    private var pendingStartAction: (() -> Unit)? = null
+
     private val permissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            // 直近リクエストの結果で判定
+            val action = pendingStartAction
+            pendingStartAction = null
             val allGranted = result.values.all { it == true }
-            if (allGranted) {
+            if (allGranted && action != null) {
                 disableStartButton()
-                start()
+                action()
             } else {
                 showPermissionError()
             }
@@ -68,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.startButton.setOnClickListener { tryStartWithPermissions() }
+        binding.dummyStartButton.setOnClickListener { startWithDummy() }
         binding.stopButton.setOnClickListener {
             close()
         }
@@ -124,6 +130,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var mediaChannel: SoraMediaChannel? = null
+    private var dummyCapturer: VideoCapturer? = null
     private var cameraConfig =
         SoraMediaOption.SoraCameraConfig(
             captureType = SoraVideoOption.CaptureType.DEVICE_CAMERA,
@@ -196,6 +203,9 @@ class MainActivity : AppCompatActivity() {
                 ms: MediaStream,
             ) {
                 Log.d(TAG, "onAddLocalStream")
+                // cameraConfig = null のため SDK は DummyVideoCapturer の startCapture() を呼ばない
+                // onAddLocalStream 時点で initialize() 済みのためここで手動開始する
+                dummyCapturer?.startCapture(400, 400, 30)
                 runOnUiThread {
                     if (ms.videoTracks.size > 0) {
                         val track = ms.videoTracks[0]
@@ -251,6 +261,42 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
+        connectMediaChannel(eglContext) {
+            enableVideoUpstream(eglContext, cameraConfig)
+        }
+    }
+
+    private fun startWithDummy() {
+        Log.d(TAG, "startWithDummy")
+
+        disableStartButton()
+
+        // 映像はダミー生成するためカメラ権限は不要
+        if (hasPermission(Manifest.permission.RECORD_AUDIO).not()) {
+            pendingStartAction = ::startWithDummy
+            permissionsLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
+            return
+        }
+
+        val eglContext =
+            egl?.eglBaseContext ?: run {
+                Log.e(TAG, "EGL is not initialized")
+                Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
+                restoreUiOnStartFailure()
+                return
+            }
+
+        dummyCapturer = DummyVideoCapturer()
+
+        connectMediaChannel(eglContext) {
+            enableVideoUpstream(dummyCapturer!!, eglContext)
+        }
+    }
+
+    private fun connectMediaChannel(
+        eglContext: EglBase.Context,
+        configureUpstream: SoraMediaOption.() -> Unit,
+    ) {
         ensureRenderersInitialized(eglContext)
 
         runCatching {
@@ -258,10 +304,8 @@ class MainActivity : AppCompatActivity() {
                 SoraMediaOption().apply {
                     enableAudioDownstream()
                     enableVideoDownstream(eglContext)
-
                     enableAudioUpstream()
-                    // CameraVideoCapturer は SDK 内部で生成・制御される
-                    enableVideoUpstream(eglContext, cameraConfig)
+                    configureUpstream()
                 }
 
             mediaChannel =
@@ -289,6 +333,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleStartFailure() {
         releaseRenderers()
+        dummyCapturer?.dispose()
+        dummyCapturer = null
         restoreUiOnStartFailure()
     }
 
@@ -297,6 +343,8 @@ class MainActivity : AppCompatActivity() {
         binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
         binding.startButton.isEnabled = true
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+        binding.dummyStartButton.isEnabled = true
+        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#4CAF50"))
     }
 
     private fun tryStartWithPermissions() {
@@ -307,6 +355,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        pendingStartAction = ::start
         val shouldShow = check.missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
         if (shouldShow) {
             showRationaleDialog(
@@ -344,8 +393,11 @@ class MainActivity : AppCompatActivity() {
             disableStopButton()
         }
         releaseRenderers()
-        mediaChannel?.disconnect()
+        val channel = mediaChannel
         mediaChannel = null
+        channel?.disconnect()
+        dummyCapturer?.dispose()
+        dummyCapturer = null
     }
 
     private fun dispose() {
@@ -361,6 +413,8 @@ class MainActivity : AppCompatActivity() {
         binding.stopButton.setBackgroundColor(Color.parseColor("#F06292"))
         binding.startButton.isEnabled = false
         binding.startButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.dummyStartButton.isEnabled = false
+        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
     }
 
     private fun disableStopButton() {
@@ -368,6 +422,8 @@ class MainActivity : AppCompatActivity() {
         binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
         binding.startButton.isEnabled = true
         binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+        binding.dummyStartButton.isEnabled = true
+        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#4CAF50"))
     }
 
     private fun ensureRenderersInitialized(eglContext: EglBase.Context) {
@@ -396,6 +452,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPermissionError() {
         Log.d(TAG, "showPermissionError")
+        enableStartButton()
         Snackbar
             .make(
                 binding.rootLayout,

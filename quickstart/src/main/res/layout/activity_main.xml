@@ -18,6 +18,15 @@
         android:text="START" />
 
     <Button
+        android:id="@+id/dummyStartButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:background="#4CAF50"
+        android:layout_margin="10dp"
+        android:text="START (DUMMY)" />
+
+    <Button
         android:id="@+id/stopButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
