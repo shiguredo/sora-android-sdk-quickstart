@@ -11,7 +11,6 @@ fun String.toBuildConfigStringLiteral(): String =
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ktlint)
 }
 
@@ -35,9 +34,9 @@ android {
         versionName = "1.0"
 
         // アプリで参照する設定を BuildConfig / resource に書き込む。
-        val signalingEndpoint = project.properties["signaling_endpoint"] as? String ?: ""
-        val channelId = project.properties["channel_id"] as? String ?: ""
-        val signalingMetadata = project.properties["signaling_metadata"] as? String ?: ""
+        val signalingEndpoint = providers.gradleProperty("signaling_endpoint").orNull ?: ""
+        val channelId = providers.gradleProperty("channel_id").orNull ?: ""
+        val signalingMetadata = providers.gradleProperty("signaling_metadata").orNull ?: ""
 
         buildConfigField("String", "SIGNALING_ENDPOINT", "\"$signalingEndpoint\"")
         buildConfigField("String", "CHANNEL_ID", "\"$channelId\"")
@@ -48,23 +47,17 @@ android {
         // - PKCS#8 形式に対応しています
         // - PEM 文字列はコミットしないようにしてください
         // CA 証明書
-        val caCertificatePem = project.properties["ca_certificate_pem"] as? String ?: ""
+        val caCertificatePem = providers.gradleProperty("ca_certificate_pem").orNull ?: ""
         // クライアント証明書
-        val clientCertificatePem = project.properties["client_certificate_pem"] as? String ?: ""
+        val clientCertificatePem = providers.gradleProperty("client_certificate_pem").orNull ?: ""
         // クライアント証明書の秘密鍵
-        val clientPrivateKeyPem = project.properties["client_private_key_pem"] as? String ?: ""
+        val clientPrivateKeyPem = providers.gradleProperty("client_private_key_pem").orNull ?: ""
 
         buildConfigField("String", "CA_CERTIFICATE_PEM", caCertificatePem.toBuildConfigStringLiteral())
         buildConfigField("String", "CLIENT_CERTIFICATE_PEM", clientCertificatePem.toBuildConfigStringLiteral())
         buildConfigField("String", "CLIENT_PRIVATE_KEY_PEM", clientPrivateKeyPem.toBuildConfigStringLiteral())
 
         manifestPlaceholders["usesCleartextTraffic"] = rootProject.extra["usesCleartextTraffic"] as Boolean
-    }
-
-    sourceSets {
-        getByName("main") {
-            java.srcDirs("src/main/kotlin")
-        }
     }
 
     compileOptions {
@@ -84,7 +77,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
