@@ -1,8 +1,8 @@
 [versions]
 # Build tools
-android-gradle-plugin = "8.11.1"
-kotlin = "2.0.20"
-ktlint-gradle = "13.1.0"
+android-gradle-plugin = "9.2.1"
+kotlin = "2.2.10"
+ktlint-gradle = "14.2.0"
 versions-plugin = "0.46.0"
 android-maven-plugin = "2.1"
 
@@ -19,8 +19,8 @@ javaCompatibility = "1.8"
 sora-android-sdk = "2026.2.0-canary.3"
 
 # Libraries
-gson = "2.13.1"
-androidx-appcompat = "1.7.0"
+gson = "2.14.0"
+androidx-appcompat = "1.7.1"
 material = "1.12.0"
 
 [libraries]
