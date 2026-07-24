@@ -28,7 +28,9 @@ import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
+import org.webrtc.MediaStreamTrack
 import org.webrtc.VideoCapturer
+import org.webrtc.VideoTrack
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -175,25 +177,25 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onWarning [$reason]")
             }
 
-            override fun onAddRemoteStream(
+            override fun onAddRemoteTrack(
                 mediaChannel: SoraMediaChannel,
-                ms: MediaStream,
+                track: MediaStreamTrack,
+                streamId: String,
             ) {
-                Log.d(TAG, "onAddRemoteStream")
+                Log.d(TAG, "onAddRemoteTrack: trackId=${track.id()}, streamId=$streamId")
+                val videoTrack = track as? VideoTrack ?: return
                 runOnUiThread {
-                    if (ms.videoTracks.size > 0) {
-                        val track = ms.videoTracks[0]
-                        track.setEnabled(true)
-                        track.addSink(this@MainActivity.binding.remoteRenderer)
-                    }
+                    videoTrack.setEnabled(true)
+                    videoTrack.addSink(this@MainActivity.binding.remoteRenderer)
                 }
             }
 
-            override fun onRemoveRemoteStream(
+            override fun onRemoveRemoteTrack(
                 mediaChannel: SoraMediaChannel,
-                label: String,
+                trackId: String,
+                streamId: String,
             ) {
-                Log.d(TAG, "onRemoveRemoteStream")
+                Log.d(TAG, "onRemoveRemoteTrack: trackId=$trackId, streamId=$streamId")
                 runOnUiThread {
                     binding.remoteRenderer.clearImage()
                 }
