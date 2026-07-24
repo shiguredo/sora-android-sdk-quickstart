@@ -44,7 +44,7 @@ android {
         buildConfigField("String", "SIGNALING_METADATA", "\"$signalingMetadata\"")
 
         // ユーザー CA の動作確認用パラメーター
-        // - ヒアドキュメント等によりPEM 文字列を入力します
+        // - ヒアドキュメント等により PEM 文字列を入力します
         // - PKCS#8 形式に対応しています
         // - PEM 文字列はコミットしないようにしてください
         // CA 証明書
