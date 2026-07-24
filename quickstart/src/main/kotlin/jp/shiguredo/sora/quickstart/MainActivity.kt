@@ -24,6 +24,7 @@ import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
+import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
@@ -316,6 +317,21 @@ class MainActivity : AppCompatActivity() {
                     signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
                     mediaOption = option,
                     listener = channelListener,
+                    caCertificate =
+                        BuildConfig.CA_CERTIFICATE_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
+                    clientCertificate =
+                        BuildConfig.CLIENT_CERTIFICATE_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
+                    clientPrivateKey =
+                        BuildConfig.CLIENT_PRIVATE_KEY_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
                 )
             mediaChannel?.connect()
         }.onFailure { throwable ->
