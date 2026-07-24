@@ -11,7 +11,7 @@
 
 ## 2026.2
 
-- [UPDATE] Sora Android SDK を 2026.2.0-canary.1 に上げる
+- [UPDATE] Sora Android SDK を 2026.2.0-canary.3 に上げる
   - libwebrtc バージョンを m150 に上げる
   - @t-miya
 - [ADD] 検証用のダミー映像ソースで接続するボタンを追加する
