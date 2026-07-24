@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
+import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
@@ -316,6 +317,21 @@ class MainActivity : AppCompatActivity() {
                     signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
                     mediaOption = option,
                     listener = channelListener,
+                    caCertificate =
+                        BuildConfig.CA_CERTIFICATE_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
+                    clientCertificate =
+                        BuildConfig.CLIENT_CERTIFICATE_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
+                    clientPrivateKey =
+                        BuildConfig.CLIENT_PRIVATE_KEY_PEM
+                            .unescapePem()
+                            .trim()
+                            .ifBlank { null },
                 )
             mediaChannel?.connect()
         }.onFailure { throwable ->

@@ -1,6 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+fun String.toBuildConfigStringLiteral(): String =
+    "\"" +
+        replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r") +
+        "\""
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -34,6 +42,21 @@ android {
         buildConfigField("String", "SIGNALING_ENDPOINT", "\"$signalingEndpoint\"")
         buildConfigField("String", "CHANNEL_ID", "\"$channelId\"")
         buildConfigField("String", "SIGNALING_METADATA", "\"$signalingMetadata\"")
+
+        // ユーザー CA の動作確認用パラメーター
+        // - ヒアドキュメント等により PEM 文字列を入力します
+        // - PKCS#8 形式に対応しています
+        // - PEM 文字列はコミットしないようにしてください
+        // CA 証明書
+        val caCertificatePem = project.properties["ca_certificate_pem"] as? String ?: ""
+        // クライアント証明書
+        val clientCertificatePem = project.properties["client_certificate_pem"] as? String ?: ""
+        // クライアント証明書の秘密鍵
+        val clientPrivateKeyPem = project.properties["client_private_key_pem"] as? String ?: ""
+
+        buildConfigField("String", "CA_CERTIFICATE_PEM", caCertificatePem.toBuildConfigStringLiteral())
+        buildConfigField("String", "CLIENT_CERTIFICATE_PEM", clientCertificatePem.toBuildConfigStringLiteral())
+        buildConfigField("String", "CLIENT_PRIVATE_KEY_PEM", clientPrivateKeyPem.toBuildConfigStringLiteral())
 
         manifestPlaceholders["usesCleartextTraffic"] = rootProject.extra["usesCleartextTraffic"] as Boolean
     }
