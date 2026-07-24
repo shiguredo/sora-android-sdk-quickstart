@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
+import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
@@ -24,7 +25,6 @@ import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
-import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.util.SoraLogger
 import org.webrtc.EglBase
 import org.webrtc.MediaStream
