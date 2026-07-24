@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
           distribution: 'adopt'
           java-version: '17'
@@ -42,7 +42,6 @@ jobs:
           status: ${{ job.status }}
           slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
           slack_channel: sora-android-sdk
-          slack_title: Build failed
           notify_mode: failure_and_fixed
         env:
           GH_TOKEN: ${{ github.token }}
