@@ -36,4 +36,4 @@ Sora Android SDK の使い方は
 
 ## Copyright
 
-Copyright 2023, Shiguredo Inc. and Lyo Kato <lyo.kato at gmail.com>
+Copyright 2023 Shiguredo Inc. and Lyo Kato <lyo.kato at gmail.com>

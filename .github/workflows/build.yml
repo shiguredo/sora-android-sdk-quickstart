@@ -18,8 +18,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
-          distribution: 'adopt'
-          java-version: '17'
+          distribution: 'temurin'
+          java-version: '21'
           cache: 'gradle'
       - name: Copy gradle.properties
         run: cp gradle.properties.example gradle.properties

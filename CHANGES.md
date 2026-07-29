@@ -9,6 +9,36 @@
 - FIX
   - バグ修正
 
+## 2026.2
+
+**リリース日**: 2026-07-29
+
+- [UPDATE] リモートトラックの受信処理をトラック単位のコールバックに移行する
+  - `onAddRemoteStream` / `onRemoveRemoteStream` から `onAddRemoteTrack` / `onRemoveRemoteTrack` に変更した
+  - @zztkm
+- [UPDATE] Sora Android SDK を 2026.2.1 に上げる
+  - libwebrtc バージョンを m150 に上げる
+  - @t-miya
+- [UPDATE] 依存ライブラリーのバージョンを上げる
+  - com.android.tools.build:gradle を 9.2.1 に上げる
+  - Gradle バージョンを 9.5.0 に上げる
+  - kotlin バージョンを 2.2.10 に上げる
+  - com.google.code.gson:gson を 2.14.0 に上げる
+  - androidx.appcompat:appcompat を 1.7.1 に上げる
+  - org.jlleitschuh.gradle:ktlint-gradle を 14.2.0 に上げる
+  - @t-miya
+- [ADD] 検証用のダミー映像ソースで接続するボタンを追加する
+  - ダミー映像はカラーバー + 経過秒 + チェッカーパターンを生成し、カメラなしで映像配信の検証ができる
+  - @t-miya
+
+### misc
+
+- [UPDATE] GitHub Actions の build ワークフローの Java を更新する
+  - Distribution を Temurin に変更する
+    - sora-android-sdk で利用している Distribution に合わせる
+  - Java バージョンを 21 に上げる
+  - @t-miya
+
 ## 2026.1
 
 - [UPDATE] Sora Android SDK を 2026.1.0 に上げる
