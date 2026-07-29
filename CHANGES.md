@@ -11,6 +11,8 @@
 
 ## 2026.2
 
+**リリース日**: 2026-07-29
+
 - [UPDATE] リモートトラックの受信処理をトラック単位のコールバックに移行する
   - `onAddRemoteStream` / `onRemoveRemoteStream` から `onAddRemoteTrack` / `onRemoveRemoteTrack` に変更した
   - @zztkm
