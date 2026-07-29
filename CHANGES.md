@@ -16,7 +16,7 @@
 - [UPDATE] リモートトラックの受信処理をトラック単位のコールバックに移行する
   - `onAddRemoteStream` / `onRemoveRemoteStream` から `onAddRemoteTrack` / `onRemoveRemoteTrack` に変更した
   - @zztkm
-- [UPDATE] Sora Android SDK を 2026.2.0-canary.3 に上げる
+- [UPDATE] Sora Android SDK を 2026.2.1 に上げる
   - libwebrtc バージョンを m150 に上げる
   - @t-miya
 - [UPDATE] 依存ライブラリーのバージョンを上げる
