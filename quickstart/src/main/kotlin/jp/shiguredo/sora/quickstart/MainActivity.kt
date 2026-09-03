@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioManager
+import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +19,10 @@ import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
+import jp.shiguredo.sora.sdk.channel.SoraSignalingDirection
+import jp.shiguredo.sora.sdk.channel.SoraSignalingTransportType
 import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
+import jp.shiguredo.sora.sdk.channel.option.PeerConnectionOption
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
 import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
@@ -245,6 +249,32 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onOfferMessage: offer=$offer")
             }
 
+            override fun onSignalingMessage(
+                mediaChannel: SoraMediaChannel,
+                direction: SoraSignalingDirection,
+                transportType: SoraSignalingTransportType,
+                rawMessage: String,
+            ) {
+                if (direction == SoraSignalingDirection.SENT && rawMessage.contains("\"type\":\"answer\"")) {
+                    Log.d(TAG, "sent answer has stereo Opus: ${rawMessage.contains("opus/48000/2")}")
+                }
+            }
+
+            override fun onPeerConnectionStatsReady(
+                mediaChannel: SoraMediaChannel,
+                statsReport: org.webrtc.RTCStatsReport,
+            ) {
+                val audioStats =
+                    statsReport.statsMap.values
+                        .filter { stat ->
+                            stat.type == "outbound-rtp" &&
+                                (stat.members["kind"] ?: stat.members["mediaType"]) == "audio"
+                        }.joinToString { it.members.toString() }
+                if (audioStats.isNotEmpty()) {
+                    Log.d(TAG, "audio outbound stats: $audioStats")
+                }
+            }
+
             override fun onNotificationMessage(
                 mediaChannel: SoraMediaChannel,
                 notification: NotificationMessage,
@@ -308,6 +338,12 @@ class MainActivity : AppCompatActivity() {
                     enableAudioDownstream()
                     enableVideoDownstream(eglContext)
                     enableAudioUpstream()
+                    audioOption.apply {
+                        // Pixel 7 の内蔵マイクでステレオ入力を検証する。
+                        audioSource = MediaRecorder.AudioSource.CAMCORDER
+                        audioProcessingAutoGainControl = false
+                        useStereoInput = true
+                    }
                     configureUpstream()
                 }
 
@@ -319,6 +355,10 @@ class MainActivity : AppCompatActivity() {
                     signalingMetadata = Gson().fromJson(BuildConfig.SIGNALING_METADATA, Map::class.java),
                     mediaOption = option,
                     listener = channelListener,
+                    peerConnectionOption =
+                        PeerConnectionOption().apply {
+                            getStatsIntervalMSec = 1000
+                        },
                     caCertificate =
                         BuildConfig.CA_CERTIFICATE_PEM
                             .unescapePem()
