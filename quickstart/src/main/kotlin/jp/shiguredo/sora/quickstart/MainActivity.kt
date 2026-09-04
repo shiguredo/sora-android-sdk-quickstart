@@ -1,153 +1,71 @@
 package jp.shiguredo.sora.quickstart
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Color
+import android.media.AudioAttributes
 import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import jp.shiguredo.sora.quickstart.databinding.ActivityMainBinding
 import jp.shiguredo.sora.quickstart.util.unescapePem
 import jp.shiguredo.sora.sdk.channel.SoraCloseEvent
 import jp.shiguredo.sora.sdk.channel.SoraMediaChannel
 import jp.shiguredo.sora.sdk.channel.data.ChannelAttendeesCount
+import jp.shiguredo.sora.sdk.channel.option.SoraChannelRole
 import jp.shiguredo.sora.sdk.channel.option.SoraMediaOption
-import jp.shiguredo.sora.sdk.channel.option.SoraVideoOption
 import jp.shiguredo.sora.sdk.channel.signaling.message.NotificationMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.OfferMessage
 import jp.shiguredo.sora.sdk.channel.signaling.message.PushMessage
 import jp.shiguredo.sora.sdk.error.SoraErrorReason
 import jp.shiguredo.sora.sdk.util.SoraLogger
-import org.webrtc.EglBase
+import org.webrtc.AudioTrack
 import org.webrtc.MediaStream
 import org.webrtc.MediaStreamTrack
-import org.webrtc.VideoCapturer
-import org.webrtc.VideoTrack
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     companion object {
         private val TAG = MainActivity::class.simpleName
+        private const val UI_UPDATE_INTERVAL_MILLIS = 100L
     }
-
-    private var egl: EglBase? = null
-    private var oldAudioMode: Int = AudioManager.MODE_INVALID
-
-    private var audioManager: AudioManager? = null
-
-    private var renderersInitialized = false
 
     private lateinit var binding: ActivityMainBinding
 
-    private val requiredPermissions =
-        arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
-        )
-
-    // 権限取得後にどの開始処理を実行するか保持する
-    private var pendingStartAction: (() -> Unit)? = null
-
-    private val permissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            val action = pendingStartAction
-            pendingStartAction = null
-            val allGranted = result.values.all { it == true }
-            if (allGranted && action != null) {
-                disableStartButton()
-                action()
-            } else {
-                showPermissionError()
-            }
-        }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        SoraLogger.enabled = true
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.startButton.setOnClickListener { tryStartWithPermissions() }
-        binding.dummyStartButton.setOnClickListener { startWithDummy() }
-        binding.stopButton.setOnClickListener {
-            close()
-        }
-
-        egl = EglBase.create()
-        val eglContext = egl?.eglBaseContext
-        if (eglContext == null) {
-            Log.e(TAG, "EGL context initialization failed")
-            Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-            finish()
-            return
-        }
-        // レンダラーの初期化は start() 内の ensureRenderersInitialized() で実行する
-        disableStopButton()
-
-        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-        audioManager?.let { am ->
-            oldAudioMode = am.mode
-            Log.d(TAG, "AudioManager mode change: $oldAudioMode => MODE_IN_COMMUNICATION(3)")
-            am.mode = AudioManager.MODE_IN_COMMUNICATION
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        this.volumeControlStream = AudioManager.STREAM_VOICE_CALL
-    }
-
-    override fun onStop() {
-        super.onStop()
-        // ここではリソースを解放しない（単なるバックグラウンド遷移に対応）
-        // アクティビティ終了時（Back/finish）のみ解放したい場合は下記を使用:
-        // if (isFinishing) { close(); dispose() }
-    }
-
-    @SuppressLint("WrongConstant")
-    override fun onDestroy() {
-        Log.d(TAG, "onDestroy")
-        super.onDestroy()
-        // AudioManager のモードを起動前の状態に戻す。
-        // oldAudioMode は初期値として MODE_INVALID を使っており、
-        // これは「復元不要」を示すセンチネル。MODE_INVALID のまま代入すると
-        // Lint の WrongConstant が発生し得るため、チェックしてから復元する。
-        audioManager?.let { am ->
-            if (oldAudioMode != AudioManager.MODE_INVALID) {
-                Log.d(TAG, "AudioManager mode change: MODE_IN_COMMUNICATION(3) => $oldAudioMode")
-                am.mode = oldAudioMode
-            } else {
-                Log.d(TAG, "AudioManager mode unchanged (oldAudioMode is MODE_INVALID)")
-            }
-        }
-
-        dispose()
-    }
-
+    @Volatile
     private var mediaChannel: SoraMediaChannel? = null
-    private var dummyCapturer: VideoCapturer? = null
-    private var cameraConfig =
-        SoraMediaOption.SoraCameraConfig(
-            captureType = SoraVideoOption.CaptureType.DEVICE_CAMERA,
-            width = 400,
-            height = 400,
-            frameRate = 30,
-            frontFacingFirst = true,
-            initialVideoHardMute = false,
-        )
+
+    private var audioManager: AudioManager? = null
+    private var oldAudioMode: Int = AudioManager.MODE_INVALID
+
+    private val audioTrackLock = Any()
+    private val audioTrackObservations = mutableMapOf<String, AudioTrackObservation>()
+    private var activeAudioTrackId: String? = null
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val uiUpdater =
+        object : Runnable {
+            override fun run() {
+                updateAnalysisUi()
+                mainHandler.postDelayed(this, UI_UPDATE_INTERVAL_MILLIS)
+            }
+        }
+
+    private data class AudioTrackObservation(
+        val trackId: String,
+        val track: AudioTrack,
+        val analyzer: StereoAudioAnalyzer,
+        val streamId: String,
+    )
 
     private val channelListener =
         object : SoraMediaChannel.Listener {
             override fun onConnect(mediaChannel: SoraMediaChannel) {
-                Log.d(TAG, "onConnect")
+                Log.d(TAG, "onConnect: recvonly audio channel")
             }
 
             override fun onClose(
@@ -158,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                     closeEvent.code != 1000 -> Log.e(TAG, "onClose: エラーにより Sora から切断されました: $closeEvent")
                     else -> Log.i(TAG, "onClose: Sora から切断されました: $closeEvent")
                 }
-                close()
+                close(mediaChannel)
             }
 
             override fun onError(
@@ -166,8 +84,8 @@ class MainActivity : AppCompatActivity() {
                 reason: SoraErrorReason,
                 message: String,
             ) {
-                Log.d(TAG, "onError [$reason]: $message")
-                close()
+                Log.e(TAG, "onError [$reason]: $message")
+                close(mediaChannel)
             }
 
             override fun onWarning(
@@ -182,12 +100,60 @@ class MainActivity : AppCompatActivity() {
                 track: MediaStreamTrack,
                 streamId: String,
             ) {
-                Log.d(TAG, "onAddRemoteTrack: trackId=${track.id()}, streamId=$streamId")
-                val videoTrack = track as? VideoTrack ?: return
-                runOnUiThread {
-                    videoTrack.setEnabled(true)
-                    videoTrack.addSink(this@MainActivity.binding.remoteRenderer)
+                if (this@MainActivity.mediaChannel !== mediaChannel) {
+                    Log.d(TAG, "onAddRemoteTrack: 古いチャネルからの通知を無視します")
+                    return
                 }
+
+                val audioTrack = track as? AudioTrack
+                if (audioTrack == null) {
+                    Log.w(TAG, "onAddRemoteTrack: audio track ではないため無視します: trackId=${track.id()}")
+                    return
+                }
+
+                val trackId = audioTrack.id()
+                val observation =
+                    AudioTrackObservation(
+                        trackId = trackId,
+                        track = audioTrack,
+                        analyzer = StereoAudioAnalyzer(),
+                        streamId = streamId,
+                    )
+                var becameActive = false
+                var attached = false
+
+                synchronized(audioTrackLock) {
+                    val previousObservation = audioTrackObservations.put(trackId, observation)
+                    previousObservation?.let { detachAudioTrackLocked(it) }
+
+                    runCatching {
+                        audioTrack.setEnabled(true)
+                        audioTrack.addSink(observation.analyzer)
+                    }.onSuccess {
+                        attached = true
+                        if (activeAudioTrackId == null) {
+                            activeAudioTrackId = trackId
+                            becameActive = true
+                        }
+                    }.onFailure { throwable ->
+                        audioTrackObservations.remove(trackId)
+                        if (activeAudioTrackId == trackId) {
+                            activeAudioTrackId = audioTrackObservations.keys.firstOrNull()
+                        }
+                        observation.analyzer.stop()
+                        Log.e(TAG, "AudioTrackSink の接続に失敗しました: trackId=$trackId", throwable)
+                    }
+                }
+
+                if (!attached) {
+                    return
+                }
+
+                Log.d(
+                    TAG,
+                    "onAddRemoteTrack: audio track attached, trackId=$trackId, " +
+                        "streamId=$streamId, active=$becameActive",
+                )
             }
 
             override fun onRemoveRemoteTrack(
@@ -195,9 +161,31 @@ class MainActivity : AppCompatActivity() {
                 trackId: String,
                 streamId: String,
             ) {
-                Log.d(TAG, "onRemoveRemoteTrack: trackId=$trackId, streamId=$streamId")
-                runOnUiThread {
-                    binding.remoteRenderer.clearImage()
+                if (this@MainActivity.mediaChannel !== mediaChannel) {
+                    Log.d(TAG, "onRemoveRemoteTrack: 古いチャネルからの通知を無視します")
+                    return
+                }
+
+                var removedObservation: AudioTrackObservation? = null
+                var newActiveObservation: AudioTrackObservation? = null
+
+                synchronized(audioTrackLock) {
+                    removedObservation = audioTrackObservations.remove(trackId)
+                    removedObservation?.let { detachAudioTrackLocked(it) }
+
+                    if (activeAudioTrackId == trackId) {
+                        activeAudioTrackId = audioTrackObservations.keys.firstOrNull()
+                        newActiveObservation = activeAudioTrackId?.let { audioTrackObservations[it] }
+                    }
+                }
+
+                Log.d(
+                    TAG,
+                    "onRemoveRemoteTrack: audio track detached, trackId=$trackId, " +
+                        "streamId=$streamId, found=${removedObservation != null}",
+                )
+                if (newActiveObservation == null && removedObservation != null) {
+                    updateAnalysisUiOnMainThread()
                 }
             }
 
@@ -205,17 +193,7 @@ class MainActivity : AppCompatActivity() {
                 mediaChannel: SoraMediaChannel,
                 ms: MediaStream,
             ) {
-                Log.d(TAG, "onAddLocalStream")
-                // cameraConfig = null のため SDK は DummyVideoCapturer の startCapture() を呼ばない
-                // onAddLocalStream 時点で initialize() 済みのためここで手動開始する
-                dummyCapturer?.startCapture(400, 400, 30)
-                runOnUiThread {
-                    if (ms.videoTracks.size > 0) {
-                        val track = ms.videoTracks[0]
-                        track.setEnabled(true)
-                        track.addSink(this@MainActivity.binding.localRenderer)
-                    }
-                }
+                Log.w(TAG, "onAddLocalStream: recvonly 設定では想定外のコールバックです")
             }
 
             override fun onPushMessage(
@@ -223,12 +201,6 @@ class MainActivity : AppCompatActivity() {
                 push: PushMessage,
             ) {
                 Log.d(TAG, "onPushMessage: push=$push")
-                val data = push.data
-                if (data is Map<*, *>) {
-                    data.forEach { (key, value) ->
-                        Log.d(TAG, "received push data: $key=$value")
-                    }
-                }
             }
 
             override fun onAttendeesCountUpdated(
@@ -253,65 +225,70 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private fun start() {
-        Log.d(TAG, "start")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        val eglContext =
-            egl?.eglBaseContext ?: run {
-                Log.e(TAG, "EGL is not initialized")
-                Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-                restoreUiOnStartFailure()
-                return
+        SoraLogger.enabled = true
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.startButton.setOnClickListener { start() }
+        binding.stopButton.setOnClickListener { close() }
+
+        audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        audioManager?.let { manager ->
+            oldAudioMode = manager.mode
+            if (manager.mode != AudioManager.MODE_NORMAL) {
+                Log.d(TAG, "AudioManager mode change: ${manager.mode} => MODE_NORMAL")
+                manager.mode = AudioManager.MODE_NORMAL
             }
-
-        connectMediaChannel(eglContext) {
-            enableVideoUpstream(eglContext, cameraConfig)
         }
+
+        disableStopButton()
+        mainHandler.post(uiUpdater)
     }
 
-    private fun startWithDummy() {
-        Log.d(TAG, "startWithDummy")
+    override fun onResume() {
+        super.onResume()
+        volumeControlStream = AudioManager.STREAM_MUSIC
+    }
 
-        disableStartButton()
+    @SuppressLint("WrongConstant")
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
+        mainHandler.removeCallbacks(uiUpdater)
+        close()
 
-        // 映像はダミー生成するためカメラ権限は不要
-        if (hasPermission(Manifest.permission.RECORD_AUDIO).not()) {
-            pendingStartAction = ::startWithDummy
-            permissionsLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
+        audioManager?.let { manager ->
+            if (oldAudioMode != AudioManager.MODE_INVALID && manager.mode != oldAudioMode) {
+                Log.d(TAG, "AudioManager mode restore: ${manager.mode} => $oldAudioMode")
+                manager.mode = oldAudioMode
+            }
+        }
+
+        super.onDestroy()
+    }
+
+    private fun start() {
+        if (mediaChannel != null) {
             return
         }
 
-        val eglContext =
-            egl?.eglBaseContext ?: run {
-                Log.e(TAG, "EGL is not initialized")
-                Snackbar.make(binding.rootLayout, "初期化に失敗しました", Snackbar.LENGTH_LONG).show()
-                restoreUiOnStartFailure()
-                return
-            }
+        disableStartButton()
+        binding.statusTextView.text = "接続中"
+        binding.trackInfoTextView.text = "受信トラック: 待機中"
 
-        dummyCapturer = DummyVideoCapturer()
-
-        connectMediaChannel(eglContext) {
-            enableVideoUpstream(dummyCapturer!!, eglContext)
-        }
-    }
-
-    private fun connectMediaChannel(
-        eglContext: EglBase.Context,
-        configureUpstream: SoraMediaOption.() -> Unit,
-    ) {
-        ensureRenderersInitialized(eglContext)
-
+        var channel: SoraMediaChannel? = null
         runCatching {
             val option =
                 SoraMediaOption().apply {
+                    role = SoraChannelRole.RECVONLY
                     enableAudioDownstream()
-                    enableVideoDownstream(eglContext)
-                    enableAudioUpstream()
-                    configureUpstream()
+                    audioOption.useStereoOutput = true
+                    configureStereoAudioAttributes(audioOption)
                 }
 
-            mediaChannel =
+            channel =
                 SoraMediaChannel(
                     context = this,
                     signalingEndpointCandidates = BuildConfig.SIGNALING_ENDPOINT.split(",").map { it.trim() },
@@ -335,161 +312,155 @@ class MainActivity : AppCompatActivity() {
                             .trim()
                             .ifBlank { null },
                 )
-            mediaChannel?.connect()
+            mediaChannel = channel
+            channel?.connect()
         }.onFailure { throwable ->
-            Log.e(TAG, "Failed to start media channel", throwable)
-            handleStartFailure()
-        }
-    }
-
-    private fun restoreUiOnStartFailure() {
-        runOnUiThread {
-            // 開始失敗時は開始前の状態へ戻す（Start有効・Stop無効）
-            enableStartButton()
-        }
-    }
-
-    private fun handleStartFailure() {
-        releaseRenderers()
-        dummyCapturer?.dispose()
-        dummyCapturer = null
-        restoreUiOnStartFailure()
-    }
-
-    private fun enableStartButton() {
-        binding.stopButton.isEnabled = false
-        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
-        binding.startButton.isEnabled = true
-        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
-        binding.dummyStartButton.isEnabled = true
-        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#4CAF50"))
-    }
-
-    private fun tryStartWithPermissions() {
-        val check = evaluatePermissions()
-        if (check.allGranted) {
-            disableStartButton()
-            start()
-            return
-        }
-
-        pendingStartAction = ::start
-        val shouldShow = check.missing.any { perm -> shouldShowRequestPermissionRationale(perm) }
-        if (shouldShow) {
-            showRationaleDialog(
-                "ビデオチャットを利用するには、カメラとマイクの使用許可が必要です",
-            ) {
-                permissionsLauncher.launch(check.missing)
+            Log.e(TAG, "Failed to start recvonly media channel", throwable)
+            mediaChannel = null
+            detachAudioTracks()
+            channel?.let { failedChannel ->
+                runCatching { failedChannel.disconnect() }
             }
-        } else {
-            permissionsLauncher.launch(check.missing)
+            restoreUiOnStartFailure("接続開始に失敗しました")
         }
     }
 
-    private fun hasPermission(perm: String): Boolean = ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
-
-    private data class PermissionCheck(
-        val allGranted: Boolean,
-        val missing: Array<String>,
-    )
-
-    private fun evaluatePermissions(): PermissionCheck {
-        val missing =
-            requiredPermissions
-                .filterNot(::hasPermission)
-                .toTypedArray()
-        return PermissionCheck(missing.isEmpty(), missing)
-    }
-
-    private fun close() {
-        if (isSessionReleased()) {
+    private fun close(expectedChannel: SoraMediaChannel? = null) {
+        val channel = mediaChannel
+        if (expectedChannel != null && channel !== expectedChannel) {
+            Log.d(TAG, "close: すでに別のチャネルへ切り替わっているため無視します")
             return
         }
-
-        // UI 更新系処理は runOnUiThread で行う
+        mediaChannel = null
+        detachAudioTracks()
+        channel?.disconnect()
         runOnUiThread {
             disableStopButton()
+            binding.statusTextView.text = "未接続"
+            binding.trackInfoTextView.text = "受信トラック: なし"
+            binding.metricsTextView.text = "L RMS: -\nR RMS: -\nR / L: -\nL - R RMS: -"
+            binding.waveformView.clear()
         }
-        releaseRenderers()
-        val channel = mediaChannel
-        mediaChannel = null
-        channel?.disconnect()
-        dummyCapturer?.dispose()
-        dummyCapturer = null
     }
 
-    private fun dispose() {
-        if (!isSessionReleased()) {
-            close()
+    private fun detachAudioTracks() {
+        synchronized(audioTrackLock) {
+            audioTrackObservations.values.toList().forEach { detachAudioTrackLocked(it) }
+            audioTrackObservations.clear()
+            activeAudioTrackId = null
         }
-        egl?.release()
-        egl = null
+    }
+
+    private fun detachAudioTrackLocked(observation: AudioTrackObservation) {
+        runCatching { observation.track.removeSink(observation.analyzer) }
+            .onFailure { throwable ->
+                Log.w(TAG, "AudioTrackSink の解除に失敗しました: trackId=${observation.trackId}", throwable)
+            }
+        observation.analyzer.stop()
+    }
+
+    private fun updateAnalysisUiOnMainThread() {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            updateAnalysisUi()
+        } else {
+            runOnUiThread { updateAnalysisUi() }
+        }
+    }
+
+    private fun updateAnalysisUi() {
+        val observation =
+            synchronized(audioTrackLock) {
+                activeAudioTrackId?.let { audioTrackObservations[it] }
+            }
+        val snapshot = observation?.analyzer?.snapshot() ?: StereoAudioSnapshot.empty()
+
+        binding.waveformView.setSnapshot(snapshot)
+
+        if (observation == null) {
+            binding.statusTextView.text = if (mediaChannel == null) "未接続" else "接続済み、受信トラック待ち"
+            binding.trackInfoTextView.text = "受信トラック: なし"
+            binding.metricsTextView.text = "L RMS: -\nR RMS: -\nR / L: -\nL - R RMS: -"
+            return
+        }
+
+        binding.statusTextView.text =
+            when (snapshot.status) {
+                AudioAnalysisStatus.STEREO -> "ステレオ PCM 受信中"
+                AudioAnalysisStatus.MONO -> "モノラル PCM 受信中"
+                AudioAnalysisStatus.UNSUPPORTED_FORMAT -> "未対応の PCM 形式"
+                AudioAnalysisStatus.INVALID_DATA -> "PCM データ不正"
+                AudioAnalysisStatus.NO_DATA -> "トラック接続済み、PCM 待機中"
+            }
+        binding.trackInfoTextView.text =
+            "trackId: ${observation.track.id()}\n" +
+            "streamId: ${observation.streamId}\n" +
+            "channels: ${snapshot.numberOfChannels}, " +
+            "sample rate: ${snapshot.sampleRate} Hz, " +
+            "bits: ${snapshot.bitsPerSample}, " +
+            "frames: ${snapshot.totalFrames}"
+
+        val ratio =
+            if (snapshot.rmsLeft != null && snapshot.rmsRight != null && snapshot.rmsLeft > 0.0) {
+                snapshot.rmsRight / snapshot.rmsLeft
+            } else {
+                null
+            }
+        binding.metricsTextView.text =
+            "L RMS: ${formatValue(snapshot.rmsLeft)}\n" +
+            "R RMS: ${formatValue(snapshot.rmsRight)}\n" +
+            "R / L: ${formatValue(ratio)}\n" +
+            "L - R RMS: ${formatValue(snapshot.differenceRms)}"
+    }
+
+    private fun restoreUiOnStartFailure(message: String) {
+        runOnUiThread {
+            disableStopButton()
+            binding.statusTextView.text = message
+        }
+    }
+
+    private fun configureStereoAudioAttributes(audioOption: Any) {
+        // audioAttributes は開発中の SDK で追加された API のため、公開済み SDK でもビルドできるよう反射で設定する。
+        val audioAttributes =
+            AudioAttributes
+                .Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+
+        runCatching {
+            audioOption.javaClass
+                .getMethod("setAudioAttributes", AudioAttributes::class.java)
+                .invoke(audioOption, audioAttributes)
+        }.onSuccess {
+            Log.d(TAG, "AudioAttributes configured for stereo playback")
+        }.onFailure { throwable ->
+            Log.w(
+                TAG,
+                "Sora Android SDK に audioAttributes API がないため、ステレオ用 AudioAttributes を適用できません。" +
+                    "ローカル SDK を指定してください",
+                throwable,
+            )
+        }
+    }
+
+    private fun formatValue(value: Double?): String = value?.let { String.format(Locale.ROOT, "%.5f", it) } ?: "-"
+
+    private fun enableStartButton() {
+        binding.startButton.isEnabled = true
+        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
+        binding.stopButton.isEnabled = false
+        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
     }
 
     private fun disableStartButton() {
-        binding.stopButton.isEnabled = true
-        binding.stopButton.setBackgroundColor(Color.parseColor("#F06292"))
         binding.startButton.isEnabled = false
         binding.startButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
-        binding.dummyStartButton.isEnabled = false
-        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
+        binding.stopButton.isEnabled = true
+        binding.stopButton.setBackgroundColor(Color.parseColor("#F06292"))
     }
 
     private fun disableStopButton() {
-        binding.stopButton.isEnabled = false
-        binding.stopButton.setBackgroundColor(Color.parseColor("#CCCCCC"))
-        binding.startButton.isEnabled = true
-        binding.startButton.setBackgroundColor(Color.parseColor("#F06292"))
-        binding.dummyStartButton.isEnabled = true
-        binding.dummyStartButton.setBackgroundColor(Color.parseColor("#4CAF50"))
-    }
-
-    private fun ensureRenderersInitialized(eglContext: EglBase.Context) {
-        if (renderersInitialized) {
-            return
-        }
-        binding.localRenderer.init(eglContext, null)
-        binding.remoteRenderer.init(eglContext, null)
-        renderersInitialized = true
-    }
-
-    private fun releaseRenderers() {
-        if (!renderersInitialized) {
-            return
-        }
-        if (!this::binding.isInitialized) {
-            renderersInitialized = false
-            return
-        }
-        binding.localRenderer.release()
-        binding.remoteRenderer.release()
-        renderersInitialized = false
-    }
-
-    private fun isSessionReleased(): Boolean = mediaChannel == null && !renderersInitialized
-
-    private fun showPermissionError() {
-        Log.d(TAG, "showPermissionError")
         enableStartButton()
-        Snackbar
-            .make(
-                binding.rootLayout,
-                "ビデオチャットを利用するには、カメラとマイクの使用を許可してください",
-                Snackbar.LENGTH_LONG,
-            ).setAction("OK") { }
-            .show()
-    }
-
-    private fun showRationaleDialog(
-        message: String,
-        onProceed: () -> Unit,
-    ) {
-        AlertDialog
-            .Builder(this)
-            .setPositiveButton(getString(R.string.permission_button_positive)) { _, _ -> onProceed() }
-            .setNegativeButton(getString(R.string.permission_button_negative)) { _, _ -> }
-            .setCancelable(false)
-            .setMessage(message)
-            .show()
     }
 }

@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    testImplementation(libs.junit)
 
     // Sora Android SDK
     if (findProject(":sora-android-sdk") != null) {

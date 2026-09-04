@@ -2,9 +2,30 @@
 
 このリポジトリでは、 Sora Android SDK を利用するシンプルな Android アプリケーションを提供します。
 
-このアプリケーションは、1対1 のビデオチャットのみを含み、各オプションもデフォルト固定、
-start, stop ボタンがあるだけの 1 画面のみのシンプルなものです。
+このアプリケーションは、 Sora JavaScript SDK のステレオ音声を受信して確認するためのサンプルです。
+音声のみの `recvonly` 接続を確立し、受信した PCM の L / R の RMS 値と波形を表示します。
 それは、素の `SoraMediaChannel` を使ったサンプルになっています。
+
+## ステレオ音声受信の検証
+
+ステレオ音声受信の検証には、開発中の Sora Android SDK を composite build で指定します。
+
+```console
+$ SORA_SDK_DIR=../sora-android-sdk ./gradlew :quickstart:installDebug
+```
+
+`gradle.properties` にシグナリングエンドポイントとチャネル ID を設定してからアプリケーションを起動し、 `START` を押してください。
+
+送信側は Sora JavaScript SDK の `e2e-tests/fake_stereo_audio` ページを使用します。
+
+```console
+$ cd ../sora-js-sdk
+$ pnpm run e2e-dev -- --port 9000
+```
+
+ブラウザで `http://localhost:9000/fake_stereo_audio/` を開き、同じチャネル ID のまま `Use Stereo Audio (Fake Generator)` を有効にして `connect` を押します。
+
+Android 側では `channels: 2`、 L / R の RMS 値、 `L - R RMS`、 L / R / L - R の波形を確認できます。
 
 ## About Support
 
