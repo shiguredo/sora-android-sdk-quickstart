@@ -9,6 +9,18 @@
 - FIX
   - バグ修正
 
+## 2026.4
+
+- [UPDATE] Sora Android SDK を 2026.4.0-canary.4 に上げる
+  - libwebrtc が 154.8037.3.0 に上がり、`VideoCapturer.isCapturing()` の実装が必要になったため、`DummyVideoCapturer` に実装を追加する
+  - @zztkm
+
+### misc
+
+- [UPDATE] GitHub Actions の build ワークフローの Java バージョンを 25 に上げる
+  - `shiguredo-webrtc-android` の `classes.jar` が Java 25 class file を含むため
+  - @zztkm
+
 ## 2026.3
 
 - [UPDATE] Sora Android SDK を 2026.3.0 に上げる

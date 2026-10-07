@@ -19,7 +19,9 @@ jobs:
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # sora-android-sdk が参照する shiguredo-webrtc-android の classes.jar が
+          # Java 25 class file を含むため、CI でも JDK 25 を利用する
+          java-version: '25'
           cache: 'gradle'
       - name: Copy gradle.properties
         run: cp gradle.properties.example gradle.properties
