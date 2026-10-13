@@ -11,6 +11,13 @@
 
 ## 2026.4
 
+- [ADD] libwebrtc のネイティブログを有効にする
+  - `SoraLogger.libwebrtcLogEnabled` を true に設定する
+  - @zztkm
+- [UPDATE] Sora Android SDK を 2026.4.0-canary.5 に上げる
+  - libwebrtc を m156.8078.3.1 に上げ、依存先を `shiguredo-webrtc-android` から `webrtc-build` に変更する
+  - `LoggingJni` を含む AAR となり、`SoraLogger.libwebrtcLogEnabled` を有効にした接続がタイムアウトしなくなる
+  - @zztkm
 - [UPDATE] Sora Android SDK を 2026.4.0-canary.4 に上げる
   - libwebrtc が 154.8037.3.0 に上がり、`VideoCapturer.isCapturing()` の実装が必要になったため、`DummyVideoCapturer` に実装を追加する
   - @zztkm
@@ -18,7 +25,7 @@
 ### misc
 
 - [UPDATE] GitHub Actions の build ワークフローの Java バージョンを 25 に上げる
-  - `shiguredo-webrtc-android` の `classes.jar` が Java 25 class file を含むため
+  - libwebrtc の `classes.jar` が Java 25 class file を含むため
   - @zztkm
 
 ## 2026.3

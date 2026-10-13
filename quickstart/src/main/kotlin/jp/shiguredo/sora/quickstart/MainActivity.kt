@@ -72,6 +72,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         SoraLogger.enabled = true
+        // libwebrtc のネイティブログを有効にする。
+        // このフラグを立てると Logging.enableLogToDebugOutput() 経由で LoggingJni がロードされるため、
+        // AAR に LoggingJni.class が含まれていない SDK では接続がタイムアウトする。
+        SoraLogger.libwebrtcLogEnabled = true
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
