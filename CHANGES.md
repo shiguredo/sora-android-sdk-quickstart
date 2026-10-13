@@ -2,10 +2,10 @@
 
 - CHANGE
   - 下位互換のない変更
-- UPDATE
-  - 下位互換がある変更
 - ADD
   - 下位互換がある追加
+- UPDATE
+  - 下位互換がある変更
 - FIX
   - バグ修正
 
@@ -37,6 +37,9 @@
 
 **リリース日**: 2026-07-29
 
+- [ADD] 検証用のダミー映像ソースで接続するボタンを追加する
+  - ダミー映像はカラーバー + 経過秒 + チェッカーパターンを生成し、カメラなしで映像配信の検証ができる
+  - @t-miya
 - [UPDATE] リモートトラックの受信処理をトラック単位のコールバックに移行する
   - `onAddRemoteStream` / `onRemoveRemoteStream` から `onAddRemoteTrack` / `onRemoveRemoteTrack` に変更した
   - @zztkm
@@ -50,9 +53,6 @@
   - com.google.code.gson:gson を 2.14.0 に上げる
   - androidx.appcompat:appcompat を 1.7.1 に上げる
   - org.jlleitschuh.gradle:ktlint-gradle を 14.2.0 に上げる
-  - @t-miya
-- [ADD] 検証用のダミー映像ソースで接続するボタンを追加する
-  - ダミー映像はカラーバー + 経過秒 + チェッカーパターンを生成し、カメラなしで映像配信の検証ができる
   - @t-miya
 
 ### misc
@@ -97,6 +97,11 @@
 
 ### misc
 
+- [ADD] ローカルの sora-android-sdk を Composite build で取り込めるようにする
+  - gradle.properties.example にローカルの sora-android-sdk のソースコードのパスを指定する `soraSdkDirPath` キーを追加
+  - settings.gradle.kts に `soraSdkDirPath` のパスを Composite build で取り込む処理を追加
+  - settings.gradle.kts の実装は Composite build 利用時のみコメントアウトする。デフォルトでは JitPack 経由での SDK 利用となる
+  - @t-miya
 - [UPDATE] ktlint バージョンを上げる
   - ktlint を 1.7.1 に上げる
   - ktlint-gradle を 13.1.0 に上げる
@@ -110,11 +115,6 @@
 - [UPDATE] システム条件を更新する
   - Android Studio 2025.2.1 以降
   - @zztkm
-- [ADD] ローカルの sora-android-sdk を Composite build で取り込めるようにする
-  - gradle.properties.example にローカルの sora-android-sdk のソースコードのパスを指定する `soraSdkDirPath` キーを追加
-  - settings.gradle.kts に `soraSdkDirPath` のパスを Composite build で取り込む処理を追加
-  - settings.gradle.kts の実装は Composite build 利用時のみコメントアウトする。デフォルトでは JitPack 経由での SDK 利用となる
-  - @t-miya
 
 ## sora-andoroid-sdk-2025.2.0
 
@@ -125,6 +125,14 @@
   - @zztkm
 - [CHANGE] `SoraMediaOption` 設定時に `enableMultistream()` を適用しないようにする
   - Sora がデフォルトでレガシーストリームを使用するように設定されている場合、接続エラーになる
+  - @zztkm
+- [UPDATE] `SoraMediaChannel.Listener` の実装を追加する
+  - `onClose` で closeEvent に応じてログを出力するようにした
+  - `onWarning` を追加した
+  - `onRemoveRemoteStream` を用いてリモートストリームが削除された時に画面をクリアするようにした
+  - `onAttendeesCountUpdated` で接続数をログに出力するようにした
+  - `onOfferMessage` で Sora から受信した Offer メッセージをログに出力するようにした
+  - `onNotificationMessage` で通知内容をログに出力するようにした
   - @zztkm
 - [UPDATE] システム条件を更新する
   - Android Studio 2025.1.1 以降
@@ -153,21 +161,13 @@
   - エンドポイントを複数指定できるように変更
   - 今まで通り 1 つのエンドポイントを指定することも可能
   - @zztkm
-- [UPDATE] `SoraMediaChannel.Listener` の実装を追加する
-  - `onClose` で closeEvent に応じてログを出力するようにした
-  - `onWarning` を追加した
-  - `onRemoveRemoteStream` を用いてリモートストリームが削除された時に画面をクリアするようにした
-  - `onAttendeesCountUpdated` で接続数をログに出力するようにした
-  - `onOfferMessage` で Sora から受信した Offer メッセージをログに出力するようにした
-  - `onNotificationMessage` で通知内容をログに出力するようにした
-  - @zztkm
 
 ### misc
 
-- [UPDATE] GitHub Actions の定期実行をやめる
-  - @zztkm
 - [ADD] .github ディレクトリに copilot-instructions.md を追加
   - @torikizi
+- [UPDATE] GitHub Actions の定期実行をやめる
+  - @zztkm
 
 ## sora-andoroid-sdk-2025.1.1
 
@@ -329,11 +329,11 @@ Sora Android SDK 2024.1.0 のリリース作業時に発生した問題により
 
 ## sora-andoroid-sdk-2022.1.0
 
+- [ADD] シグナリング接続時に送信するメタデータを外部ファイルから設定できるようにする
+  - @miosakuma
 - [UPDATE] システム条件を更新する
   - Android Studio 2020.3.1 以降
   - Sora Android SDK 2022.1.0 以降
-  - @miosakuma
-- [ADD] シグナリング接続時に送信するメタデータを外部ファイルから設定できるようにする
   - @miosakuma
 
 ## sora-andoroid-sdk-2021.3
