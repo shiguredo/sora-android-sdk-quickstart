@@ -17,7 +17,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "sora-android-sdk-quickstart"
 include(":quickstart")
-include(":local-libwebrtc")
 
 // ローカル SDK を composite build で取り込む場合は、
 // gradle.properties の `soraSdkDirPath` または環境変数 `SORA_SDK_DIR` を設定した上で以下をアンコメントする

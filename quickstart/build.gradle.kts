@@ -115,6 +115,7 @@ dependencies {
 
 configurations.all {
     resolutionStrategy {
+        force("com.github.shiguredo-webrtc-build:webrtc-build:m156.8078.3.5")
         cacheDynamicVersionsFor(0, "seconds")
         cacheChangingModulesFor(0, "seconds")
     }
