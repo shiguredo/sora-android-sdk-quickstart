@@ -35,6 +35,10 @@ internal class DummyVideoCapturer : VideoCapturer {
 
         // U/V プレーン無彩色 (128 = グレー)
         private const val UV_NEUTRAL = 128.toByte()
+
+        // 再現用: 壊れたフレーム送信を開始するまでの待ち時間と、その継続時間
+        private const val BROKEN_MODE_DELAY_MS = 10_000L
+        private const val BROKEN_MODE_DURATION_MS = 5_000L
     }
 
     private data class YuvColor(
@@ -74,6 +78,18 @@ internal class DummyVideoCapturer : VideoCapturer {
             }
             Log.w(TAG, "activateBrokenModeRunnable: 壊れたテクスチャフレーム送信モードに切り替える")
             brokenMode.set(true)
+            // 一定時間後に通常フレームへ戻す
+            handler?.postDelayed(restoreNormalModeRunnable, BROKEN_MODE_DURATION_MS)
+        }
+
+    // 再現用: 壊れたフレームの送信を止めて通常フレームに戻す
+    private val restoreNormalModeRunnable =
+        Runnable {
+            if (isDisposed.get() || !isRunning.get()) {
+                return@Runnable
+            }
+            Log.w(TAG, "restoreNormalModeRunnable: 通常フレームに戻す")
+            brokenMode.set(false)
         }
     private var width: Int = 0
     private var height: Int = 0
@@ -142,14 +158,17 @@ internal class DummyVideoCapturer : VideoCapturer {
         handler?.postDelayed(generateFrameRunnable, delayMs)
         // 一時的な再現用: 接続確立後に壊れたテクスチャフレーム送信モードへ切り替える
         brokenMode.set(false)
-        handler?.postDelayed(activateBrokenModeRunnable, 10_000)
+        handler?.postDelayed(activateBrokenModeRunnable, BROKEN_MODE_DELAY_MS)
         observer?.onCapturerStarted(true)
     }
 
     override fun stopCapture() {
         Log.d(TAG, "stopCapture")
         isRunning.set(false)
+        brokenMode.set(false)
         handler?.removeCallbacks(generateFrameRunnable)
+        handler?.removeCallbacks(activateBrokenModeRunnable)
+        handler?.removeCallbacks(restoreNormalModeRunnable)
         observer?.onCapturerStopped()
     }
 
@@ -172,6 +191,7 @@ internal class DummyVideoCapturer : VideoCapturer {
         isRunning.set(false)
         handler?.removeCallbacks(generateFrameRunnable)
         handler?.removeCallbacks(activateBrokenModeRunnable)
+        handler?.removeCallbacks(restoreNormalModeRunnable)
         startTextBitmap?.recycle()
         startTextBitmap = null
         elapsedBitmap?.recycle()
