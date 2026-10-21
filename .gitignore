@@ -134,3 +134,6 @@ fabric.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.gitignore.io/api/androidstudio
+
+# Manually placed local libwebrtc AAR
+local-libwebrtc/*.aar

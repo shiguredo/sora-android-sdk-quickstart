@@ -14,3 +14,14 @@ buildscript {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+subprojects {
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("com.github.shiguredo:shiguredo-webrtc-android"))
+                .using(project(":local-libwebrtc"))
+            substitute(module("com.github.shiguredo-webrtc-build:webrtc-build"))
+                .using(project(":local-libwebrtc"))
+        }
+    }
+}
