@@ -4,15 +4,19 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.opengl.GLES20
 import android.os.Handler
 import android.util.Log
 import org.webrtc.CapturerObserver
 import org.webrtc.JavaI420Buffer
 import org.webrtc.SurfaceTextureHelper
+import org.webrtc.TextureBufferImpl
 import org.webrtc.VideoCapturer
 import org.webrtc.VideoFrame
+import org.webrtc.YuvConverter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,6 +62,19 @@ internal class DummyVideoCapturer : VideoCapturer {
 
     private var handler: Handler? = null
     private var observer: CapturerObserver? = null
+    private val brokenMode = AtomicBoolean(false)
+    private var brokenYuvConverter: YuvConverter? = null
+
+    // issue 0039 の再現用: Sora 接続後 10 秒で壊れたテクスチャフレームの送信に切り替える
+    // ダミー映像モードでのみ動作する
+    private val activateBrokenModeRunnable =
+        Runnable {
+            if (isDisposed.get() || !isRunning.get()) {
+                return@Runnable
+            }
+            Log.w(TAG, "activateBrokenModeRunnable: 壊れたテクスチャフレーム送信モードに切り替える")
+            brokenMode.set(true)
+        }
     private var width: Int = 0
     private var height: Int = 0
     private var fps: Int = 0
@@ -123,6 +140,9 @@ internal class DummyVideoCapturer : VideoCapturer {
         val delayMs = 1000L / fps.coerceAtLeast(1)
         Log.d(TAG, "startCapture: ${width}x$height@${fps}fps delayMs=$delayMs")
         handler?.postDelayed(generateFrameRunnable, delayMs)
+        // 一時的な再現用: 接続確立後に壊れたテクスチャフレーム送信モードへ切り替える
+        brokenMode.set(false)
+        handler?.postDelayed(activateBrokenModeRunnable, 10_000)
         observer?.onCapturerStarted(true)
     }
 
@@ -151,6 +171,7 @@ internal class DummyVideoCapturer : VideoCapturer {
         Log.d(TAG, "dispose: frameIndex=${frameIndex.get()}")
         isRunning.set(false)
         handler?.removeCallbacks(generateFrameRunnable)
+        handler?.removeCallbacks(activateBrokenModeRunnable)
         startTextBitmap?.recycle()
         startTextBitmap = null
         elapsedBitmap?.recycle()
@@ -164,11 +185,44 @@ internal class DummyVideoCapturer : VideoCapturer {
     // libwebrtc 151 で VideoCapturer に追加された。キャプチャー中かどうかを返す
     override fun isCapturing(): Boolean = isRunning.get()
 
+    // 再現用: GL エラーを残した状態で OES テクスチャフレームを送信し、ToI420() を失敗させる
+    private fun sendBrokenTextureFrame(
+        w: Int,
+        h: Int,
+    ) {
+        val currentHandler = handler ?: return
+        val yuvConverter =
+            brokenYuvConverter ?: YuvConverter().also {
+                brokenYuvConverter = it
+            }
+        val buffer =
+            TextureBufferImpl(
+                w,
+                h,
+                VideoFrame.TextureBuffer.Type.OES,
+                12345, // glGenTextures していない ID
+                Matrix(),
+                currentHandler,
+                yuvConverter,
+                null,
+            )
+        // 意図的に GL エラーを残し、YuvConverter の変換を GLException で失敗させる
+        GLES20.glBindTexture(0x1234, 0)
+        val frame = VideoFrame(buffer, 90, System.nanoTime())
+        observer?.onFrameCaptured(frame)
+        frame.release()
+    }
+
     private fun generateFrame() {
         val w = width
         val h = height
         if (w <= 0 || h <= 0) {
             Log.w(TAG, "generateFrame: 無効なサイズ w=$w h=$h")
+            return
+        }
+
+        if (brokenMode.get()) {
+            sendBrokenTextureFrame(w, h)
             return
         }
 
